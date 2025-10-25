@@ -1,0 +1,14 @@
+@api_inmobiliaria_HostAddress = http://localhost:5113
+
+GET {{api_inmobiliaria_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{api_inmobiliaria_HostAddress}}/Propietario/Login
+Content-Type: application/json
+Accept: text/plain
+{
+    "Email": "juan_perez@mail.com",
+    "Clave": "123"
+}

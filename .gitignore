@@ -1,0 +1,66 @@
+## Archivos de compilación y dependencias
+bin/
+obj/
+out/
+
+## Configuración de usuario
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Archivos de publicación
+*.publish.xml
+*.pubxml
+*.pfx
+*.snk
+
+## Archivos de logs y diagnósticos
+*.log
+*.tlog
+*.vshost.*
+
+## Archivos de configuración local
+appsettings.Development.json
+secrets.json
+
+## Archivos de paquetes
+*.nupkg
+*.nuspec
+packages/
+*.vspscc
+*.vssscc
+
+## Archivos de Rider y VS Code
+.idea/
+.vscode/
+*.code-workspace
+
+## Archivos de sistema
+.DS_Store
+Thumbs.db
+
+## Archivos de lock y caché
+project.lock.json
+project.fragment.lock.json
+*.pidb
+*.svclog
+*.pid
+*.tmp
+*.bak
+
+## Archivos de cobertura y pruebas
+TestResults/
+*.coverage
+*.coveragexml
+*.testresults
+
+## Archivos de herramientas
+.vs/
+_ReSharper*/
+*.DotSettings.user
+
+## Archivos de configuración de contenedores
+docker-compose.override.yml
+.env
+.env.*
