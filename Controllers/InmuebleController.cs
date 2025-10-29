@@ -1,3 +1,4 @@
+using System.Text.Json;
 using api_inmobiliaria.Interfaces;
 using InmobiliariaGutierrezManuel.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -28,9 +29,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (propietarioId == null)
-                {
-                    return Unauthorized(new { msg = "No esta autenticado" });
-                }
+                    return Unauthorized(new { error = "No esta autenticado" });
 
                 Inmueble? inmueble = await _repo.GetByIdAsync(id);
                 if (inmueble != null)
@@ -41,9 +40,7 @@ namespace api_inmobiliaria.Controllers
                     return Ok(InmuebleDTO.Parse(inmueble));
                 }
                 else
-                {
-                    return NotFound(new { msg = "No se encontro el inmueble" });
-                }
+                    return NotFound(new { error = "No se encontro el inmueble" });
             }
             catch (Exception ex)
             {
@@ -59,9 +56,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (!propietarioId.HasValue)
-                {
-                    return Unauthorized(new { msg = "No esta autenticado" });
-                }
+                    return Unauthorized(new { error = "No esta autenticado" });
 
                 offset = (offset - 1) * limit;
                 List<Inmueble> inmuebles = await _repo.ListByPropietarioAsync(propietarioId.Value, offset, limit);
@@ -82,9 +77,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (!propietarioId.HasValue)
-                {
-                    return Unauthorized(new { msg = "No esta autenticado" });
-                }
+                    return Unauthorized(new { error = "No esta autenticado" });
 
                 offset = (offset - 1) * limit;
                 List<Inmueble> inmuebles = await _repo.ListActualmenteAlquiladosAsync(propietarioId.Value, offset, limit);
@@ -98,42 +91,45 @@ namespace api_inmobiliaria.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> PostInmueble([FromBody] InmuebleDTO dto)
+        public async Task<ActionResult> PostInmueble([FromForm] InmuebleFotoFileDTO request)
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-            {
-                return Unauthorized(new { msg = "No esta autenticado" });
-            }
+                return Unauthorized(new { error = "No esta autenticado" });
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { msg = "Datos incorrectos" });
-            }
+            if (request.Foto == null || request.InmuebleJson == null)
+                return BadRequest(new { error = "Faltan datos" });
+
+            InmuebleDTO? dto = JsonSerializer.Deserialize<InmuebleDTO>(request.InmuebleJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            
+            if (dto == null)
+                return BadRequest(new { error = "Json de Inmueble mal formado" });
 
             Inmueble inmueble = Inmueble.Parse(dto);
             inmueble.IdPropietario = id.Value;
-            
-            if (dto.FotoFile != null)
-            {
-                GuardarImagen(dto);
-                inmueble.Foto = dto.Foto;
-            }
+
+            if (dto.CantidadAmbientes == 1)
+                return BadRequest(new { error = "NO quiero dptos monoambientes" });
 
             try
             {
                 if ((await _repo.CreateAsync(inmueble)) > 0)
                 {
-                    return CreatedAtAction("", InmuebleDTO.Parse(inmueble));
+                    string urlFoto = await GuardarImagen(request.Foto, "foto_" + inmueble.Id);
+                    inmueble.Foto = urlFoto;
+
+                    if (await _repo.UpdateAsync(inmueble))
+                        return CreatedAtAction(nameof(GetInmueble), new { id = inmueble.Id }, InmuebleDTO.Parse(inmueble));
+                    else
+                        return BadRequest(new { error = "Foto no guardada" });
                 }
                 else
-                {
-                    return BadRequest();
-                }
+                    return BadRequest(new { error = "Inmueble no guardado" });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex);
+                return StatusCode(500, new { error = "Ocurrió un error inesperado" });
             }
         }
 
@@ -143,59 +139,49 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-            {
-                return Unauthorized(new { msg = "No esta autenticado" });
-            }
+                return Unauthorized(new { error = "No esta autenticado" });
 
             if (!ModelState.IsValid)
-            {
-                return BadRequest(new { msg = "Datos incorrectos" });
-            }
+                return BadRequest(new { error = "Datos incorrectos" });
 
             try
             {
                 Inmueble? inmueble = await _repo.GetByIdAsync(edit.Id);
                 if (inmueble == null)
-                    return NotFound(new { msg = "No se encontro el inmueble" });
+                    return NotFound(new { error = "No se encontro el inmueble" });
 
                 if (inmueble.IdPropietario != id.Value)
                     return Forbid();
 
+
                 inmueble.Disponible = edit.Disponible;
 
                 if (await _repo.EditDisponibleAsync(inmueble))
-                {
                     return Ok();
-                }
                 else
-                {
-                    return UnprocessableEntity(new { msg = "No se pudo actualizar el inmueble" });
-                }
+                    return UnprocessableEntity(new { error = "Algo está mal en los datos recibidos" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return BadRequest(new { msg = "No se pudo actualizar el inmueble" });
+                return BadRequest(new { error = "No se pudo actualizar el inmueble" });
             }
         }
         
-        private void GuardarImagen(InmuebleDTO dto)
+        private async Task<string> GuardarImagen(IFormFile imagen, string nombreImagen)
         {
             string wwwPath = _env.WebRootPath;
             string path = Path.Combine(wwwPath, "Uploads");
             if (!Directory.Exists(path))
-            {
                 Directory.CreateDirectory(path);
-            }
 
-            string fileName = "foto_" + dto.Id + Path.GetExtension(dto.FotoFile!.FileName);
+            string fileName = nombreImagen + Path.GetExtension(imagen.FileName);
             string pathCompleto = Path.Combine(path, fileName);
-            dto.Foto = Path.Combine("/Uploads", fileName);
 
             using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
-            {
-                dto.FotoFile.CopyTo(stream);
-            }
+                await imagen.CopyToAsync(stream);
+
+            return Path.Combine("/Uploads", fileName);
         }
 
         private void BorrarImagen(int id, string nombreImagen)

@@ -83,9 +83,33 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             return await inmuebles.ToListAsync();
         }
 
-        public Task<bool> UpdateAsync(Inmueble entidad)
+        public async Task<bool> UpdateAsync(Inmueble inmuebleModificado)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Inmueble? inmueble = await GetByIdAsync(inmuebleModificado.Id);
+                
+                if (inmueble == null) return false;
+
+                inmueble.IdTipoInmueble = inmuebleModificado.IdTipoInmueble;
+                //propietario.IdPropietario = inmuebleModificado.IdPropietario;
+                inmueble.Uso = inmuebleModificado.Uso;
+                inmueble.CantidadAmbientes = inmuebleModificado.CantidadAmbientes;
+                inmueble.Precio = inmuebleModificado.Precio;
+                inmueble.Calle = inmuebleModificado.Calle;
+                inmueble.NroCalle = inmuebleModificado.NroCalle;
+                inmueble.Latitud = inmuebleModificado.Latitud;
+                inmueble.Longitud = inmuebleModificado.Longitud;
+                inmueble.Disponible = inmuebleModificado.Disponible;
+                inmueble.Foto = inmuebleModificado.Foto;
+
+                return (await _dbContext!.SaveChangesAsync()) > 0;
+            }
+            catch (DbUpdateException dbue)
+            {
+                Console.WriteLine(dbue);
+                throw new Exception("Error al actualizar el inmueble");
+            }
         }
     }
 }

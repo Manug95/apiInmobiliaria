@@ -84,10 +84,6 @@ public class Inmueble
             Id = dto.Id,
             IdTipoInmueble = dto.IdTipoInmueble,
             IdPropietario = dto.IdPropietario,
-            Tipo = new TipoInmueble
-            {
-                Tipo = dto.TipoInmueble
-            },
             Duenio = dto.Duenio,
             Uso = dto.Uso,
             CantidadAmbientes = dto.CantidadAmbientes,

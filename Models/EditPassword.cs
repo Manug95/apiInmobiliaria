@@ -7,17 +7,17 @@ namespace api_inmobiliaria.Models
         [Required(ErrorMessage = "La contraseña actual es requerida")]
         [DataType(DataType.Password)]
         [StringLength(60, ErrorMessage = "muy lago, max 60 caracteres")]
-        public string PasswordActual { get; set; }
+        public string ClaveActual { get; set; }
         
         [Required(ErrorMessage = "La contraseña nueva es requerida")]
         [DataType(DataType.Password)]
         [StringLength(60, ErrorMessage = "muy lago, max 60 caracteres")]
-        public string PasswordNueva { get; set; }
+        public string ClaveNueva { get; set; }
 
-        public EditPassword(string passwordActual, string passwordNueva)
+        public EditPassword(string claveActual, string claveNueva)
         {
-            this.PasswordActual = passwordActual;
-            this.PasswordNueva = passwordNueva;
+            this.ClaveActual = claveActual;
+            this.ClaveNueva = claveNueva;
         }
     }
 }

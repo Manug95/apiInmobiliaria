@@ -63,6 +63,7 @@ if (builder.Configuration.GetValue<bool>("UsarEntityFrameworkMySql"))
     builder.Services.AddScoped<IInquilinoRepository, api_inmobiliaria.Repositories.EntityFramework.InquilinoRepository>();
     builder.Services.AddScoped<IContratoRepository, api_inmobiliaria.Repositories.EntityFramework.ContratoRepository>();
     builder.Services.AddScoped<IPagoRepository, api_inmobiliaria.Repositories.EntityFramework.PagoRepository>();
+    builder.Services.AddScoped<ITipoInmuebleRepository, api_inmobiliaria.Repositories.EntityFramework.TipoInmuebleRepository>();
 
     builder.Services.AddDbContext<api_inmobiliaria.Repositories.EntityFramework.BDContext>(
         dbContextOptions => dbContextOptions
@@ -94,7 +95,7 @@ app.UseCors(x => x
 	.AllowAnyMethod()
 	.AllowAnyHeader());
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

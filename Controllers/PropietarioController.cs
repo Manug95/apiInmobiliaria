@@ -140,13 +140,13 @@ namespace api_inmobiliaria.Controllers
             if (propietario == null)
                 return NotFound(new { msg = "Propietario no encontrado" });
 
-            string passwordActualHasheada = HashearPassword(editPassword.PasswordActual);
+            string passwordActualHasheada = HashearPassword(editPassword.ClaveActual);
             if (propietario.Clave != passwordActualHasheada)
                 return Forbid();
             
 			try
 			{
-				if (await _repo.ChangePasswordAsync(id.Value, HashearPassword(editPassword.PasswordNueva)))
+				if (await _repo.ChangePasswordAsync(id.Value, HashearPassword(editPassword.ClaveNueva)))
                 {
                     return Ok();
                 }

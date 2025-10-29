@@ -43,8 +43,6 @@ public class InmuebleDTO
 
     public string? Foto { get; set; }
 
-    public IFormFile? FotoFile { get; set; }
-
     public static InmuebleDTO Parse(Inmueble inmueble)
     {
         return new InmuebleDTO

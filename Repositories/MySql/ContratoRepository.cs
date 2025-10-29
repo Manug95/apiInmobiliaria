@@ -118,6 +118,11 @@ namespace api_inmobiliaria.Repositories.MySql
             throw new NotImplementedException();
         }
 
+        public Task<List<Contrato>> ListVigentesByPropietario(int idProp, int? offset, int? limit)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> UpdateAsync(Contrato entidad)
         {
             throw new NotImplementedException();
