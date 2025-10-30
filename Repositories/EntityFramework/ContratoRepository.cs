@@ -32,20 +32,22 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Contrato> inmuebles = _dbContext!.Contratos
+            IQueryable<Contrato> contratos = _dbContext!.Contratos
                 .Include(c => c.Inquilino)
-                .Include(c => c.Inmueble)
-                    .ThenInclude(i => i!.Duenio)
+                // .Include(c => c.Inmueble)
+                //     .ThenInclude(i => i!.Duenio)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Tipo)
-                .Where(c => (c.FechaInicio <= hoy && hoy <= c.FechaFin) && c.FechaTerminado == null && c.Inmueble!.Duenio!.Id == idProp)
+                .Where(c => (c.FechaInicio <= hoy && hoy <= c.FechaFin) && c.FechaTerminado == null && c.Inmueble!.IdPropietario == idProp)
                 .OrderBy(c => c.Id)
             ;
 
-            if (offset.HasValue && offset.Value > 0) inmuebles = inmuebles.Skip(offset.Value);
-            if (limit.HasValue) inmuebles = inmuebles.Take(limit.Value);
+            if (offset.HasValue && offset.Value > 0) 
+                contratos = contratos.Skip(offset.Value);
+            if (limit.HasValue) 
+                contratos = contratos.Take(limit.Value);
 
-            return await inmuebles.ToListAsync();
+            return await contratos.ToListAsync();
         }
 
         public Task<bool> UpdateAsync(Contrato contrato)

@@ -33,23 +33,18 @@ namespace api_inmobiliaria.Controllers
             {
                 int? id = _tokenService.GetIdDelToken(User);
                 if (id == null)
-                {
-                    return Unauthorized(new { msg = "No esta autenticado" });
-                }
+                    return Unauthorized(new { error = "No esta autenticado" });
 
                 Propietario? propietario = await _repo.GetByIdAsync(id.Value);
                 if (propietario != null)
-                {
                     return Ok(PropietarioDTO.Parse(propietario));
-                }
                 else
-                {
-                    return NotFound(new { msg = "No se encontro el propietario" });
-                }
+                    return NotFound(new { error = "No se encontro el propietario" });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudo recuperar el propietario" });
             }
         }
         
@@ -59,14 +54,10 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-            {
-                return Unauthorized(new { msg = "No esta autenticado" });
-            }
+                return Unauthorized(new { error = "No esta autenticado" });
                 
             if (!ModelState.IsValid)
-            {
-                return BadRequest(new { msg = "Datos incorrectos" });
-            }
+                return BadRequest(new { error = "Datos incorrectos" });
 
             // Propietario propietario = Propietario.Parse(dto);
             // Propietario? propietario = _repo.GetById(id.Value);
@@ -74,17 +65,14 @@ namespace api_inmobiliaria.Controllers
 			try
 			{
 				if (await _repo.UpdateAsync(Propietario.Parse(dto)))
-                {
                     return Ok(dto);
-                }
                 else
-                {
-                    return BadRequest();
-                }
+                    return BadRequest(new { error = "No se pudo actualizar el propietario" });
 			}
 			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
+            {
+                Console.WriteLine(ex.Message);
+				return BadRequest(new { error = "Ocurrió un error al actualizar el propietario" });
 			}
 		}
 
@@ -98,30 +86,19 @@ namespace api_inmobiliaria.Controllers
 
                 Propietario? propietario = await _repo.GetByEmailAsync(login.Email!);
                 if (propietario == null || propietario.Clave != hashed)
-                {
-                    return Unauthorized("Credenciales inválidas");
-                }
+                    return Unauthorized(new { error = "Credenciales inválidas" });
 
-                // var key = new SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(_config["TokenAuthentication:SecretKey"]!));
-                // var credenciales = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
                 var claims = new List<Claim>
                 {
                     new Claim("id", propietario.Id.ToString())
                 };
 
-                // var token = new JwtSecurityToken(
-                //     issuer: _config["TokenAuthentication:Issuer"],
-                //     audience: _config["TokenAuthentication:Audience"],
-                //     claims: claims,
-                //     expires: DateTime.Now.AddMinutes(60 * 24 * 365),
-                //     signingCredentials: credenciales
-                // );
-                // return Ok(new JwtSecurityTokenHandler().WriteToken(token));
                 return Ok(_tokenService.GenerarToken(claims));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "Error al loguearse" });
             }
         }
         
@@ -131,33 +108,30 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null) 
-                return Unauthorized(new { msg = "No esta autenticado" });
+                return Unauthorized(new { error = "No esta autenticado" });
                 
             if (!ModelState.IsValid) 
-                return BadRequest(new { msg = "Datos incorrectos" });
+                return BadRequest(new { error = "Datos incorrectos" });
 
             Propietario? propietario = await _repo.GetByIdAsync(id.Value);
             if (propietario == null)
-                return NotFound(new { msg = "Propietario no encontrado" });
+                return NotFound(new { error = "Propietario no encontrado" });
 
             string passwordActualHasheada = HashearPassword(editPassword.ClaveActual);
             if (propietario.Clave != passwordActualHasheada)
-                return Forbid();
+                return StatusCode(403, new { error = "Las contraseñas actuales no coinciden" });
             
 			try
 			{
 				if (await _repo.ChangePasswordAsync(id.Value, HashearPassword(editPassword.ClaveNueva)))
-                {
                     return Ok();
-                }
                 else
-                {
-                    return BadRequest();
-                }
+                    return BadRequest(new { error = "No se pudo cambiar la contraseña" });
 			}
 			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
+            {
+                Console.WriteLine(ex.Message);
+				return BadRequest(new { error = "Ocurrió un error al cambiar la contraseña" });
 			}
 		}
 

@@ -49,15 +49,28 @@ public class InquilinoDTO
         Email = email;
     }
 
-    public static InquilinoDTO Parse(Inquilino propietario)
+    public static InquilinoDTO Parse(Inquilino inquilino)
     {
         return new InquilinoDTO
         {
-            Nombre = propietario.Nombre,
-            Apellido = propietario.Apellido,
-            Dni = propietario.Dni,
-            Email = propietario.Email,
-            Telefono = propietario.Telefono
+            Id = inquilino.Id,
+            Nombre = inquilino.Nombre,
+            Apellido = inquilino.Apellido,
+            Dni = inquilino.Dni,
+            Email = inquilino.Email,
+            Telefono = inquilino.Telefono
         };
+    }
+
+    public static List<InquilinoDTO> ParseList(List<Inquilino> inquilinos)
+    {
+        List<InquilinoDTO> dtos = new List<InquilinoDTO>();
+
+        foreach (Inquilino i in inquilinos)
+        {
+            dtos.Add(Parse(i));
+        }
+
+        return dtos;
     }
 }

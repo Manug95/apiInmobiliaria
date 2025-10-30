@@ -80,4 +80,16 @@ public class Propietario
         };
     }
 
+    public static List<Propietario> ParseList(List<PropietarioDTO> dtos)
+    {
+        List<Propietario> propietarios = new List<Propietario>();
+
+        foreach (PropietarioDTO dto in dtos)
+        {
+            propietarios.Add(Parse(dto));
+        }
+
+        return propietarios;
+    }
+
 }

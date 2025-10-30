@@ -57,16 +57,29 @@ public class Inquilino
     {
         return $"{Apellido}, {Nombre} - {Dni}";
     }
-    
+
     public static Inquilino Parse(InquilinoDTO dto)
     {
         return new Inquilino
         {
+            Id = dto.Id,
             Nombre = dto.Nombre,
             Apellido = dto.Apellido,
             Dni = dto.Dni,
             Email = dto.Email,
             Telefono = dto.Telefono
         };
+    }
+    
+    public static List<Inquilino> ParseList(List<InquilinoDTO> dtos)
+    {
+        List<Inquilino> inquilinos = new List<Inquilino>();
+
+        foreach (InquilinoDTO dto in dtos)
+        {
+            inquilinos.Add(Parse(dto));
+        }
+
+        return inquilinos;
     }
 }

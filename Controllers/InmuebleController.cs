@@ -23,8 +23,11 @@ namespace api_inmobiliaria.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        public async Task<IActionResult> GetInmueble(int id)
+        public async Task<IActionResult> GetInmueble([FromRoute] int id)
         {
+            if (id <= 0)
+                return BadRequest(new { error = "Parámetro de ruta incorrecto" });
+
             try
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
@@ -35,7 +38,7 @@ namespace api_inmobiliaria.Controllers
                 if (inmueble != null)
                 {
                     if (inmueble.IdPropietario != propietarioId.Value)
-                        return Forbid();
+                        return StatusCode(403, new { error = "Usted no es el dueño del inmueble" });
                     
                     return Ok(InmuebleDTO.Parse(inmueble));
                 }
@@ -44,13 +47,14 @@ namespace api_inmobiliaria.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudo recuperar el inmueble" });
             }
         }
 
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetInmueble(int offset = 1, int limit = 10)
+        public async Task<IActionResult> GetInmueble([FromQuery] int offset = 1, [FromQuery] int limit = 10)
         {
             try
             {
@@ -65,13 +69,14 @@ namespace api_inmobiliaria.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudieron recuperar los inmuebles" });
             }
         }
 
         [HttpGet("alquilados")]
         [Authorize]
-        public async Task<IActionResult> Alquilados(int offset = 1, int limit = 10)
+        public async Task<IActionResult> Alquilados([FromQuery] int offset = 1, [FromQuery] int limit = 10)
         {
             try
             {
@@ -85,7 +90,8 @@ namespace api_inmobiliaria.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudieron recuperar los inmuebles actualmente alquilados" });
             }
         }
 
@@ -129,16 +135,19 @@ namespace api_inmobiliaria.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return StatusCode(500, new { error = "Ocurrió un error inesperado" });
+                return StatusCode(500, new { error = "Ocurrió un error inesperado. No se pudo crear el inmueble" });
             }
         }
 
-        [HttpPatch("disponible")]
+        [HttpPatch("{id}/disponible")]
         [Authorize]
-        public async Task<ActionResult> EditDisponible([FromBody] EditDisponible edit)
+        public async Task<ActionResult> EditDisponible([FromRoute] int id, [FromBody] Disponible disponible)
         {
-            int? id = _tokenService.GetIdDelToken(User);
-            if (id == null)
+            if (id <= 0)
+                return BadRequest(new { error = "Parámetro de ruta incorrecto" });
+
+            int? idPropietario = _tokenService.GetIdDelToken(User);
+            if (idPropietario == null)
                 return Unauthorized(new { error = "No esta autenticado" });
 
             if (!ModelState.IsValid)
@@ -146,15 +155,15 @@ namespace api_inmobiliaria.Controllers
 
             try
             {
-                Inmueble? inmueble = await _repo.GetByIdAsync(edit.Id);
+                Inmueble? inmueble = await _repo.GetByIdAsync(id);
                 if (inmueble == null)
                     return NotFound(new { error = "No se encontro el inmueble" });
 
-                if (inmueble.IdPropietario != id.Value)
-                    return Forbid();
+                if (inmueble.IdPropietario != idPropietario.Value)
+                    return StatusCode(403, new { error = "Usted no es el dueño del inmueble que quiere modificar" });
 
 
-                inmueble.Disponible = edit.Disponible;
+                inmueble.Disponible = disponible.Estado;
 
                 if (await _repo.EditDisponibleAsync(inmueble))
                     return Ok();

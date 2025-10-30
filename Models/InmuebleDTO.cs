@@ -9,7 +9,7 @@ public class InmuebleDTO
     [Required]
     public int IdPropietario { get; set; }
 
-    public Propietario? Duenio { get; set; }
+    public PropietarioDTO? Duenio { get; set; }
 
     [Required]
     public int IdTipoInmueble { get; set; }
@@ -45,13 +45,12 @@ public class InmuebleDTO
 
     public static InmuebleDTO Parse(Inmueble inmueble)
     {
-        return new InmuebleDTO
+        InmuebleDTO dto = new InmuebleDTO
         {
             Id = inmueble.Id,
             IdTipoInmueble = inmueble.IdTipoInmueble,
             IdPropietario = inmueble.IdPropietario,
             TipoInmueble = inmueble.Tipo!.Tipo,
-            Duenio = inmueble.Duenio,
             Uso = inmueble.Uso,
             CantidadAmbientes = inmueble.CantidadAmbientes,
             Precio = inmueble.Precio,
@@ -62,6 +61,11 @@ public class InmuebleDTO
             Disponible = inmueble.Disponible,
             Foto = inmueble.Foto
         };
+
+        if (inmueble.Duenio != null)
+            dto.Duenio = PropietarioDTO.Parse(inmueble.Duenio);
+
+        return dto;
     }
 
     public static List<InmuebleDTO> ParseList(List<Inmueble> inmuebles)
@@ -70,13 +74,12 @@ public class InmuebleDTO
 
         foreach (var i in inmuebles)
         {
-            dtos.Add(new InmuebleDTO
+            InmuebleDTO dto =  new InmuebleDTO
             {
                 Id = i.Id,
                 IdTipoInmueble = i.IdTipoInmueble,
                 IdPropietario = i.IdPropietario,
                 TipoInmueble = i.Tipo!.Tipo,
-                Duenio = i.Duenio,
                 Uso = i.Uso,
                 CantidadAmbientes = i.CantidadAmbientes,
                 Precio = i.Precio,
@@ -86,7 +89,12 @@ public class InmuebleDTO
                 Longitud = i.Longitud,
                 Disponible = i.Disponible,
                 Foto = i.Foto
-            });
+            };
+
+            if (i.Duenio != null)
+                dto.Duenio = PropietarioDTO.Parse(i.Duenio);
+
+            dtos.Add(dto);
         }
 
         return dtos;

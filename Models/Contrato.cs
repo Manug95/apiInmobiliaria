@@ -11,11 +11,13 @@ public class Contrato
     public int? IdInquilino { get; set; }
 
     [ForeignKey("IdInquilino")]
+    [Required]
     public Inquilino? Inquilino { get; set; }
 
     public int? IdInmueble { get; set; }
 
     [ForeignKey("IdInmueble")]
+    [Required]
     public Inmueble? Inmueble { get; set; }
 
     public decimal? MontoMensual { get; set; }
@@ -43,16 +45,34 @@ public class Contrato
 
     public static Contrato Parse(ContratoDTO dto)
     {
-        return new Contrato
+        Contrato contrato = new Contrato
         {
+            Id = dto.Id,
             IdInmueble = dto.IdInmueble,
             IdInquilino = dto.IdInquilino,
-            Inmueble = dto.Inmueble,
-            Inquilino = dto.Inquilino,
             MontoMensual = dto.MontoMensual,
             FechaInicio = dto.FechaInicio,
             FechaFin = dto.FechaFin,
             FechaTerminado = dto.FechaTerminado
         };
+
+        if (dto.Inmueble != null)
+            contrato.Inmueble = Inmueble.Parse(dto.Inmueble);
+        if (dto.Inquilino != null)
+            contrato.Inquilino = Inquilino.Parse(dto.Inquilino);
+
+        return contrato;
+    }
+
+    public static List<Contrato> ParseList(List<ContratoDTO> dtos)
+    {
+        List<Contrato> contratos = new List<Contrato>();
+
+        foreach (ContratoDTO dto in dtos)
+        {
+            contratos.Add(Parse(dto));
+        }
+
+        return contratos;
     }
 }

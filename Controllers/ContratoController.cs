@@ -18,31 +18,25 @@ namespace api_inmobiliaria.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpGet]
+        [HttpGet("vigentes")]
         [Authorize]
-        public async Task<IActionResult> GetContrato()
+        public async Task<IActionResult> ContratosVigentes([FromQuery] int offset = 1, [FromQuery] int limit = 10)
         {
             try
             {
                 int? id = _tokenService.GetIdDelToken(User);
                 if (id == null)
-                {
-                    return Unauthorized(new { msg = "No esta autenticado" });
-                }
+                    return Unauthorized(new { error = "No esta autenticado" });
+                
+                offset = (offset - 1) * limit;
+                List<Contrato> contratos = await _repo.ListVigentesByPropietario(id.Value, offset, limit);
 
-                Contrato? contrato = await _repo.GetByIdAsync(id.Value);
-                if (contrato != null)
-                {
-                    return Ok(ContratoDTO.Parse(contrato));
-                }
-                else
-                {
-                    return NotFound(new { msg = "No se encontro el contrato" });
-                }
+                return Ok(ContratoDTO.ParseList(contratos));
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "Ocurrió un error al buscar los contratos vigentes" });
             }
         }
     }

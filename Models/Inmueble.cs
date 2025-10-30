@@ -18,6 +18,7 @@ public class Inmueble
     public int IdTipoInmueble { get; set; }
 
     [ForeignKey("IdTipoInmueble")]
+    [Required]
     public TipoInmueble? Tipo { get; set; }
 
     [Required]
@@ -79,12 +80,11 @@ public class Inmueble
 
     public static Inmueble Parse(InmuebleDTO dto)
     {
-        return new Inmueble
+        Inmueble inmueble = new Inmueble
         {
             Id = dto.Id,
             IdTipoInmueble = dto.IdTipoInmueble,
             IdPropietario = dto.IdPropietario,
-            Duenio = dto.Duenio,
             Uso = dto.Uso,
             CantidadAmbientes = dto.CantidadAmbientes,
             Precio = dto.Precio,
@@ -95,5 +95,22 @@ public class Inmueble
             Disponible = dto.Disponible,
             Foto = dto.Foto
         };
+
+        if (dto.Duenio != null)
+            inmueble.Duenio = Propietario.Parse(dto.Duenio);
+
+        return inmueble;
+    }
+
+    public static List<Inmueble> ParseList(List<InmuebleDTO> dtos)
+    {
+        List<Inmueble> inmuebles = new List<Inmueble>();
+
+        foreach (InmuebleDTO dto in dtos)
+        {
+            inmuebles.Add(Parse(dto));
+        }
+
+        return inmuebles;
     }
 }

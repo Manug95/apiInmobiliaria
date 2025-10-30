@@ -4,19 +4,18 @@ namespace InmobiliariaGutierrezManuel.Models;
 
 public class ContratoDTO
 {
-    [Key]
     public int Id { get; set; }
 
     [Required]
     public int? IdInquilino { get; set; }
 
-    public Inquilino? Inquilino { get; set; }
+    public InquilinoDTO? Inquilino { get; set; }
 
     [Required]
     public int? IdInmueble { get; set; }
 
     [Required]
-    public Inmueble? Inmueble { get; set; }
+    public InmuebleDTO? Inmueble { get; set; }
 
     [Required]
     [DataType(DataType.Currency)]
@@ -34,16 +33,49 @@ public class ContratoDTO
 
     public static ContratoDTO Parse(Contrato contrato)
     {
-        return new ContratoDTO
+        ContratoDTO dto = new ContratoDTO
         {
             IdInmueble = contrato.IdInmueble,
             IdInquilino = contrato.IdInquilino,
-            Inmueble = contrato.Inmueble,
-            Inquilino = contrato.Inquilino,
             MontoMensual = contrato.MontoMensual,
             FechaInicio = contrato.FechaInicio,
             FechaFin = contrato.FechaFin,
             FechaTerminado = contrato.FechaTerminado
         };
+
+        if (contrato.Inmueble != null)
+            dto.Inmueble = InmuebleDTO.Parse(contrato.Inmueble);
+        if (contrato.Inquilino != null)
+            dto.Inquilino = InquilinoDTO.Parse(contrato.Inquilino);
+
+        return dto;
+    }
+
+    public static List<ContratoDTO> ParseList(List<Contrato> contratos)
+    {
+        List<ContratoDTO> dtos = new List<ContratoDTO>();
+
+        foreach (Contrato c in contratos)
+        {
+            ContratoDTO dto = new ContratoDTO
+            {
+                Id = c.Id,
+                IdInmueble = c.IdInmueble,
+                IdInquilino = c.IdInquilino,
+                MontoMensual = c.MontoMensual,
+                FechaInicio = c.FechaInicio,
+                FechaFin = c.FechaFin,
+                FechaTerminado = c.FechaTerminado
+            };
+
+            if (c.Inmueble != null)
+                dto.Inmueble = InmuebleDTO.Parse(c.Inmueble);
+            if (c.Inquilino != null)
+                dto.Inquilino = InquilinoDTO.Parse(c.Inquilino);
+
+            dtos.Add(dto);
+        }
+
+        return dtos;
     }
 }
