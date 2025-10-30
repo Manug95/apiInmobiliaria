@@ -3,16 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InmobiliariaGutierrezManuel.Models;
 
-public class Pago
+public class PagoDTO
 {
-    [Key]
     public int Id { get; set; }
 
     [Required(ErrorMessage = "La ID del contrato es requerida")]
     public int IdContrato { get; set; }
 
-    [Required]
-    [ForeignKey("IdContrato")]
     public Contrato? Contrato { get; set; }
 
     [Required(ErrorMessage = "La fecha es requerida")]
@@ -28,35 +25,33 @@ public class Pago
 
     public string? Tipo { get; set; }
 
-    public bool Estado { get; set; }
-
-    public static Pago Parse(PagoDTO dto)
+    public static PagoDTO Parse(Pago pago)
     {
-        Pago pago = new Pago
+        PagoDTO dto = new PagoDTO
         {
-            Id = dto.Id,
-            IdContrato = dto.IdContrato,
-            Fecha = dto.Fecha,
-            Importe = dto.Importe,
-            Detalle = dto.Detalle,
-            Tipo = dto.Tipo
+            Id = pago.Id,
+            IdContrato = pago.IdContrato,
+            Fecha = pago.Fecha,
+            Importe = pago.Importe,
+            Detalle = pago.Detalle,
+            Tipo = pago.Tipo
         };
 
-        if (dto.Contrato != null)
-            pago.Contrato = dto.Contrato;
+        if (pago.Contrato != null)
+            dto.Contrato = pago.Contrato;
 
-        return pago;
+        return dto;
     }
 
-    public static List<Pago> ParseList(List<PagoDTO> dtos)
+    public static List<PagoDTO> ParseList(List<Pago> pagos)
     {
-        List<Pago> pagos = new List<Pago>();
+        List<PagoDTO> dtos = new List<PagoDTO>();
 
-        foreach (PagoDTO dto in dtos)
+        foreach (Pago p in pagos)
         {
-            pagos.Add(Parse(dto));
+            dtos.Add(Parse(p));
         }
 
-        return pagos;
+        return dtos;
     }
 }

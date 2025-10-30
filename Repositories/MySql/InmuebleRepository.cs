@@ -117,7 +117,7 @@ namespace api_inmobiliaria.Repositories.MySql
             throw new NotImplementedException();
         }
 
-        public Task<bool> EditDisponibleAsync(Inmueble inmueble)
+        public Task<bool> UpdateDisponibleAsync(Inmueble inmueble)
         {
             bool modificado = false;
 
@@ -486,6 +486,11 @@ namespace api_inmobiliaria.Repositories.MySql
         }
 
         public Task<bool> UpdateAsync(Inmueble entidad)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateFotoAsync(Inmueble inmueble)
         {
             throw new NotImplementedException();
         }

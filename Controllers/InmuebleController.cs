@@ -32,7 +32,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (propietarioId == null)
-                    return Unauthorized(new { error = "No esta autenticado" });
+                    return Unauthorized(new { error = "No está autenticado" });
 
                 Inmueble? inmueble = await _repo.GetByIdAsync(id);
                 if (inmueble != null)
@@ -60,7 +60,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (!propietarioId.HasValue)
-                    return Unauthorized(new { error = "No esta autenticado" });
+                    return Unauthorized(new { error = "No está autenticado" });
 
                 offset = (offset - 1) * limit;
                 List<Inmueble> inmuebles = await _repo.ListByPropietarioAsync(propietarioId.Value, offset, limit);
@@ -74,7 +74,7 @@ namespace api_inmobiliaria.Controllers
             }
         }
 
-        [HttpGet("alquilados")]
+        /*[HttpGet("alquilados")]
         [Authorize]
         public async Task<IActionResult> Alquilados([FromQuery] int offset = 1, [FromQuery] int limit = 10)
         {
@@ -82,7 +82,7 @@ namespace api_inmobiliaria.Controllers
             {
                 int? propietarioId = _tokenService.GetIdDelToken(User);
                 if (!propietarioId.HasValue)
-                    return Unauthorized(new { error = "No esta autenticado" });
+                    return Unauthorized(new { error = "No está autenticado" });
 
                 offset = (offset - 1) * limit;
                 List<Inmueble> inmuebles = await _repo.ListActualmenteAlquiladosAsync(propietarioId.Value, offset, limit);
@@ -93,7 +93,7 @@ namespace api_inmobiliaria.Controllers
                 Console.WriteLine(ex.Message);
                 return BadRequest(new { error = "No se pudieron recuperar los inmuebles actualmente alquilados" });
             }
-        }
+        }*/
 
         [HttpPost]
         [Authorize]
@@ -101,21 +101,18 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-                return Unauthorized(new { error = "No esta autenticado" });
+                return Unauthorized(new { error = "No está autenticado" });
 
             if (request.Foto == null || request.InmuebleJson == null)
                 return BadRequest(new { error = "Faltan datos" });
 
             InmuebleDTO? dto = JsonSerializer.Deserialize<InmuebleDTO>(request.InmuebleJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            
+
             if (dto == null)
                 return BadRequest(new { error = "Json de Inmueble mal formado" });
 
             Inmueble inmueble = Inmueble.Parse(dto);
             inmueble.IdPropietario = id.Value;
-
-            if (dto.CantidadAmbientes == 1)
-                return BadRequest(new { error = "NO quiero dptos monoambientes" });
 
             try
             {
@@ -124,7 +121,7 @@ namespace api_inmobiliaria.Controllers
                     string urlFoto = await GuardarImagen(request.Foto, "foto_" + inmueble.Id);
                     inmueble.Foto = urlFoto;
 
-                    if (await _repo.UpdateAsync(inmueble))
+                    if (await _repo.UpdateFotoAsync(inmueble))
                         return CreatedAtAction(nameof(GetInmueble), new { id = inmueble.Id }, InmuebleDTO.Parse(inmueble));
                     else
                         return BadRequest(new { error = "Foto no guardada" });
@@ -139,6 +136,43 @@ namespace api_inmobiliaria.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<IActionResult> PutInmueble([FromRoute] int id, [FromBody] InmuebleDTO dto)
+        {
+            if (id <= 0)
+                return BadRequest(new { error = "Parámetro de ruta incorrecto" });
+
+            int? propietarioId = _tokenService.GetIdDelToken(User);
+            if (propietarioId == null)
+                return Unauthorized(new { error = "No está autenticado" });
+
+            if (!ModelState.IsValid)
+                return BadRequest(new { error = "Datos incorrectos" });
+
+            try
+            {
+                Inmueble? inmueble = await _repo.GetByIdAsync(id);
+                if (inmueble == null)
+                    return NotFound(new { error = "No se encontro el inmueble" });
+
+                if (inmueble.IdPropietario != propietarioId.Value)
+                    return StatusCode(403, new { error = "Usted no es el dueño del inmueble que quiere modificar" });
+
+                inmueble.CopyValuesFrom(dto);
+
+                if (await _repo.UpdateAsync(inmueble))
+                    return Ok();
+                else
+                    return UnprocessableEntity(new { error = "Algo está mal en los datos recibidos" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudo actualizar el inmueble" });
+            }
+        }
+
         [HttpPatch("{id}/disponible")]
         [Authorize]
         public async Task<ActionResult> EditDisponible([FromRoute] int id, [FromBody] Disponible disponible)
@@ -148,7 +182,7 @@ namespace api_inmobiliaria.Controllers
 
             int? idPropietario = _tokenService.GetIdDelToken(User);
             if (idPropietario == null)
-                return Unauthorized(new { error = "No esta autenticado" });
+                return Unauthorized(new { error = "No está autenticado" });
 
             if (!ModelState.IsValid)
                 return BadRequest(new { error = "Datos incorrectos" });
@@ -165,10 +199,49 @@ namespace api_inmobiliaria.Controllers
 
                 inmueble.Disponible = disponible.Estado;
 
-                if (await _repo.EditDisponibleAsync(inmueble))
+                if (await _repo.UpdateDisponibleAsync(inmueble))
                     return Ok();
                 else
                     return UnprocessableEntity(new { error = "Algo está mal en los datos recibidos" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return BadRequest(new { error = "No se pudo actualizar el inmueble" });
+            }
+        }
+
+        [HttpPut("{id}/foto")]
+        [Authorize]
+        public async Task<IActionResult> ChangeImage([FromRoute] int id, [FromForm] IFormFile foto)
+        {
+            if (id <= 0)
+                return BadRequest(new { error = "Parámetro de ruta incorrecto" });
+
+            if (foto == null || foto.Length == 0)
+                return BadRequest("No se recibió ninguna imágen");
+
+
+            int? idPropietario = _tokenService.GetIdDelToken(User);
+            if (idPropietario == null)
+                return Unauthorized(new { error = "No está autenticado" });
+
+            try
+            {
+                Inmueble? inmueble = await _repo.GetByIdAsync(id);
+                if (inmueble == null)
+                    return NotFound(new { error = "No se encontro el inmueble" });
+
+                if (inmueble.IdPropietario != idPropietario.Value)
+                    return StatusCode(403, new { error = "Usted no es el dueño del inmueble que quiere modificar" });
+
+
+                if (inmueble.Foto != null)
+                    BorrarImagen(id, inmueble.Foto);
+
+                await GuardarImagen(foto, "foto_" + id);
+
+                return Ok();
             }
             catch (Exception ex)
             {

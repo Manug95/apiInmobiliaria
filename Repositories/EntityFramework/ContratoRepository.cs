@@ -18,9 +18,12 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        public Task<Contrato?> GetByIdAsync(int id)
+        public async Task<Contrato?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            IQueryable<Contrato> contrato = _dbContext!.Contratos
+                .Include(C => C.Inmueble);
+            
+            return await contrato.SingleOrDefaultAsync(c => c.Id == id);
         }
 
         public Task<List<Contrato>> ListAsync()

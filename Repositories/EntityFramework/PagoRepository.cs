@@ -1,5 +1,6 @@
 using api_inmobiliaria.Interfaces;
 using InmobiliariaGutierrezManuel.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
@@ -32,9 +33,20 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        public Task<List<Pago>>ListByContratoAsync(int idCon, int? offset, int? limit)
+        public async Task<List<Pago>>ListByContratoAsync(int idCon, int? offset, int? limit)
         {
-            throw new NotImplementedException();
+            IQueryable<Pago> pagos = _dbContext!.Pagos
+                //.Include(p => p.Contrato)
+                .Where(p => p.Estado && p.IdContrato == idCon)
+                .OrderBy(p => p.Id)
+            ;
+
+            if (offset.HasValue)
+                pagos = pagos.Skip(offset.Value);
+            if (limit.HasValue)
+                pagos = pagos.Take(limit.Value);
+
+            return await pagos.ToListAsync();
         }
 
         public Task<bool> UpdateAsync(Pago entidad)

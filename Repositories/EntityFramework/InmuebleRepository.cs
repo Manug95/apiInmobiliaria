@@ -24,24 +24,12 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        // public bool EditDisponible(int id, bool disponible)
-        public async Task<bool> EditDisponibleAsync(Inmueble inmueble)
-        {
-            try
-            {
-                _dbContext!.Entry(inmueble).State = EntityState.Modified;
-                return (await _dbContext!.SaveChangesAsync()) > 0;
-            }
-            catch (DbUpdateException dbue)
-            {
-                Console.WriteLine(dbue);
-                throw new Exception("Error al actualizar el propietario");
-            }
-        }
-
         public async Task<Inmueble?> GetByIdAsync(int id)
         {
-            return await _dbContext!.Inmuebles.Include(i => i.Tipo).SingleAsync(i => i.Id == id);
+            return await _dbContext!.Inmuebles
+            .Include(i => i.Tipo)
+            //.Include(i => i.Duenio)
+            .SingleOrDefaultAsync(i => i.Id == id);
         }
 
         public Task<List<Inmueble>> ListAsync()
@@ -83,26 +71,49 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             return await inmuebles.ToListAsync();
         }
 
-        public async Task<bool> UpdateAsync(Inmueble inmuebleModificado)
+        public async Task<bool> UpdateAsync(Inmueble inmueble)
         {
             try
             {
-                Inmueble? inmueble = await GetByIdAsync(inmuebleModificado.Id);
+                // _dbContext!.Attach(inmueble);        //actualizo solo las propiedades listadas
+
+                // _dbContext!.Entry(inmueble).Property(i => i.Calle).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.NroCalle).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.IdTipoInmueble).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.Uso).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.CantidadAmbientes).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.Precio).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.Latitud).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.Longitud).IsModified = true;
+                // _dbContext!.Entry(inmueble).Property(i => i.Disponible).IsModified = true;
+                // _dbContext!.Entry(nuevo).Property(i => i.Foto).IsModified = true;
                 
-                if (inmueble == null) return false;
+                //con esto se actualiza completo
+                _dbContext!.Inmuebles.Update(inmueble);
+                return (await _dbContext!.SaveChangesAsync()) > 0;
+            }
+            catch (DbUpdateException dbue)
+            {
+                Console.WriteLine(dbue);
+                throw new Exception("Error al actualizar el inmueble");
+            }
+        }
 
-                inmueble.IdTipoInmueble = inmuebleModificado.IdTipoInmueble;
-                //propietario.IdPropietario = inmuebleModificado.IdPropietario;
-                inmueble.Uso = inmuebleModificado.Uso;
-                inmueble.CantidadAmbientes = inmuebleModificado.CantidadAmbientes;
-                inmueble.Precio = inmuebleModificado.Precio;
-                inmueble.Calle = inmuebleModificado.Calle;
-                inmueble.NroCalle = inmuebleModificado.NroCalle;
-                inmueble.Latitud = inmuebleModificado.Latitud;
-                inmueble.Longitud = inmuebleModificado.Longitud;
-                inmueble.Disponible = inmuebleModificado.Disponible;
-                inmueble.Foto = inmuebleModificado.Foto;
+        public async Task<bool> UpdateDisponibleAsync(Inmueble inmueble)
+        {
+            return await UpdateParcial(inmueble);
+        }
 
+        public async Task<bool> UpdateFotoAsync(Inmueble inmueble)
+        {
+            return await UpdateParcial(inmueble);
+        }
+
+        private async Task<bool> UpdateParcial(Inmueble inmueble)
+        {
+            try
+            {
+                _dbContext!.Entry(inmueble).State = EntityState.Modified;
                 return (await _dbContext!.SaveChangesAsync()) > 0;
             }
             catch (DbUpdateException dbue)

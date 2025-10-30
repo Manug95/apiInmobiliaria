@@ -113,4 +113,32 @@ public class Inmueble
 
         return inmuebles;
     }
+
+    public void CopyValuesFrom(Inmueble nuevo)
+    {
+        Calle = nuevo.Calle;
+        NroCalle = nuevo.NroCalle;
+        IdTipoInmueble = nuevo.IdTipoInmueble;
+        Uso = nuevo.Uso;
+        CantidadAmbientes = nuevo.CantidadAmbientes;
+        Precio = nuevo.Precio;
+        Latitud = nuevo.Latitud;
+        Longitud = nuevo.Longitud;
+        Disponible = nuevo.Disponible;
+        //Foto = nuevo.Foto;
+    }
+
+    public void CopyValuesFrom(InmuebleDTO dto)
+    {
+        Calle = dto.Calle;
+        NroCalle = dto.NroCalle;
+        IdTipoInmueble = dto.IdTipoInmueble;
+        Uso = dto.Uso;
+        CantidadAmbientes = dto.CantidadAmbientes;
+        Precio = dto.Precio;
+        Latitud = dto.Latitud;
+        Longitud = dto.Longitud;
+        Disponible = dto.Disponible;
+        //Foto = dto.Foto;
+    }
 }
