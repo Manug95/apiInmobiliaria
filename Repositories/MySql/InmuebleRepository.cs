@@ -164,6 +164,7 @@ namespace api_inmobiliaria.Repositories.MySql
                         IFNULL(i.{nameof(Inmueble.Longitud)}, 0) AS longitud, 
                         i.{nameof(Inmueble.Precio)}, 
                         i.{nameof(Inmueble.Disponible)}, 
+                        i.{nameof(Inmueble.Foto)}, 
                         ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                         p.{nameof(Propietario.Nombre)} AS nombreDuenio, 
                         p.{nameof(Propietario.Apellido)} AS apellidoDuenio, 
@@ -198,6 +199,7 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
+                                Foto = reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
@@ -239,6 +241,7 @@ namespace api_inmobiliaria.Repositories.MySql
                         IFNULL(i.{nameof(Inmueble.Longitud)}, 0) AS longitud, 
                         i.{nameof(Inmueble.Precio)}, 
                         i.{nameof(Inmueble.Disponible)}, 
+                        i.{nameof(Inmueble.Foto)}, 
                         ti.{nameof(TipoInmueble.Tipo)}, 
                         p.{nameof(Propietario.Nombre)}, 
                         p.{nameof(Propietario.Apellido)}, 
@@ -287,6 +290,7 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
+                                Foto = reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
@@ -328,6 +332,7 @@ namespace api_inmobiliaria.Repositories.MySql
                             IFNULL(i.{nameof(Inmueble.Longitud)}, 0) AS longitud, 
                             i.{nameof(Inmueble.Precio)}, 
                             i.{nameof(Inmueble.Disponible)}, 
+                            i.{nameof(Inmueble.Foto)}, 
                             ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                             p.{nameof(Propietario.Nombre)} AS nombreProp, 
                             p.{nameof(Propietario.Apellido)} AS apellidoProp, 
@@ -378,6 +383,7 @@ namespace api_inmobiliaria.Repositories.MySql
                                     Latitud = reader.GetDecimal("latitud"),
                                     Longitud = reader.GetDecimal("longitud"),
                                     Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
+                                    Foto = reader.GetString(nameof(Inmueble.Foto)),
                                     Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                     Duenio = new Propietario
                                     {
@@ -419,6 +425,7 @@ namespace api_inmobiliaria.Repositories.MySql
                         IFNULL(i.{nameof(Inmueble.Longitud)}, 0) AS longitud, 
                         i.{nameof(Inmueble.Precio)}, 
                         i.{nameof(Inmueble.Disponible)}, 
+                        i.{nameof(Inmueble.Foto)}, 
                         ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                         p.{nameof(Propietario.Nombre)} AS nombreProp, 
                         p.{nameof(Propietario.Apellido)} AS apellidoProp, 
@@ -463,6 +470,7 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
+                                Foto = reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
@@ -485,14 +493,77 @@ namespace api_inmobiliaria.Repositories.MySql
             return Task.FromResult(inmuebles);
         }
 
-        public Task<bool> UpdateAsync(Inmueble entidad)
+        public Task<bool> UpdateAsync(Inmueble inmueble)
         {
-            throw new NotImplementedException();
+            bool modificado = false;
+
+        using (var connection = new MySqlConnection(connectionString))
+        {
+            string sql = @$"
+                UPDATE inmuebles 
+                SET 
+                {nameof(Inmueble.IdPropietario)} = @{nameof(Inmueble.IdPropietario)},
+                {nameof(Inmueble.IdTipoInmueble)} = @{nameof(Inmueble.IdTipoInmueble)},
+                {nameof(Inmueble.Uso)} = @{nameof(Inmueble.Uso)},
+                {nameof(Inmueble.CantidadAmbientes)} = @{nameof(Inmueble.CantidadAmbientes)},
+                {nameof(Inmueble.Calle)} = @{nameof(Inmueble.Calle)}, 
+                {nameof(Inmueble.NroCalle)} = @{nameof(Inmueble.NroCalle)}, 
+                {nameof(Inmueble.Precio)} = @{nameof(Inmueble.Precio)}, 
+                {nameof(Inmueble.Disponible)} = @{nameof(Inmueble.Disponible)},  
+                {nameof(Inmueble.Foto)} = @{nameof(Inmueble.Foto)} 
+                WHERE {nameof(Inmueble.Id)} = @{nameof(Inmueble.Id)};"
+            ;
+
+            using (var command = new MySqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue($"{nameof(Inmueble.IdPropietario)}", inmueble.IdPropietario);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.IdTipoInmueble)}", inmueble.IdTipoInmueble);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Uso)}", inmueble.Uso);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.CantidadAmbientes)}", inmueble.CantidadAmbientes);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Calle)}", inmueble.Calle);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.NroCalle)}", inmueble.NroCalle);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Precio)}", inmueble.Precio);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Disponible)}", inmueble.Disponible);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Foto)}", inmueble.Foto);
+                command.Parameters.AddWithValue($"{nameof(Inmueble.Id)}", inmueble.Id);
+
+                connection.Open();
+
+                modificado = command.ExecuteNonQuery() > 0;
+
+                connection.Close();
+            }
+        }
+
+        return Task.FromResult(modificado);
         }
 
         public Task<bool> UpdateFotoAsync(Inmueble inmueble)
         {
-            throw new NotImplementedException();
+            bool modificado = false;
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @$"
+                    UPDATE inmuebles 
+                    SET {nameof(Inmueble.Foto)} = @{nameof(Inmueble.Foto)} 
+                    WHERE  {nameof(Inmueble.Id)} = @{nameof(Inmueble.Id)};"
+                ;
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue($"{nameof(Inmueble.Foto)}", inmueble.Foto);
+                    command.Parameters.AddWithValue($"{nameof(Inmueble.Id)}", inmueble.Id);
+
+                    connection.Open();
+
+                    modificado = command.ExecuteNonQuery() > 0;
+
+                    connection.Close();
+                }
+            }
+
+            return Task.FromResult(modificado);
         }
     }
 }
