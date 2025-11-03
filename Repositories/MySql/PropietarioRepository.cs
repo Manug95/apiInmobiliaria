@@ -4,38 +4,9 @@ using MySql.Data.MySqlClient;
 
 namespace api_inmobiliaria.Repositories.MySql
 {
-    public class PropietarioRepository : RepositoryBase, IPropietarioRepository
+    public class PropietarioRepository : RepositoryBaseMySql, IPropietarioRepository
     {
         public PropietarioRepository(IConfiguration config) : base(config) { }
-
-        public Task<bool> ChangePasswordAsync(int id, string newPassword)
-        {
-            bool claveCambiada = false;
-
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                string sql = @$"
-                    UPDATE propietarios 
-                    SET 
-                    {nameof(Propietario.Clave)} = @{nameof(Propietario.Clave)}
-                    WHERE {nameof(Propietario.Id)} = @{nameof(Propietario.Id)};"
-                ;
-
-                using (var command = new MySqlCommand(sql, connection))
-                {
-                    command.Parameters.AddWithValue($"{nameof(Propietario.Clave)}", newPassword);
-                    command.Parameters.AddWithValue($"{nameof(Propietario.Id)}", id);
-
-                    connection.Open();
-
-                    claveCambiada = command.ExecuteNonQuery() > 0;
-
-                    connection.Close();
-                }
-            }
-
-            return Task.FromResult(claveCambiada);
-        }
 
         public Task<int> CreateAsync(Propietario entidad)
         {
@@ -97,7 +68,7 @@ namespace api_inmobiliaria.Repositories.MySql
             return Task.FromResult(propietario);
         }
 
-        public Task<List<Propietario>> ListAsync()
+        public Task<List<Propietario>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }
@@ -187,6 +158,35 @@ namespace api_inmobiliaria.Repositories.MySql
             }
 
             return Task.FromResult(modificado);
+        }
+
+        public Task<bool> UpdateClaveAsync(Propietario propietario)
+        {
+            bool claveCambiada = false;
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @$"
+                    UPDATE propietarios 
+                    SET 
+                    {nameof(Propietario.Clave)} = @{nameof(Propietario.Clave)}
+                    WHERE {nameof(Propietario.Id)} = @{nameof(Propietario.Id)};"
+                ;
+
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue($"{nameof(Propietario.Clave)}", propietario.Clave);
+                    command.Parameters.AddWithValue($"{nameof(Propietario.Id)}", propietario.Id);
+
+                    connection.Open();
+
+                    claveCambiada = command.ExecuteNonQuery() > 0;
+
+                    connection.Close();
+                }
+            }
+
+            return Task.FromResult(claveCambiada);
         }
     }
 }

@@ -26,18 +26,18 @@ namespace api_inmobiliaria.Controllers
             {
                 int? idPropietario = _tokenService.GetIdDelToken(User);
                 if (idPropietario == null)
-                    return Unauthorized(new { error = "No esta autenticado" });
+                    return Unauthorized(new { mensaje = "No esta autenticado" });
 
                 Inquilino? inquilino = await _repo.GetByIdAsync(id);
                 if (inquilino != null)
                     return Ok(InquilinoDTO.Parse(inquilino));
                 else
-                    return NotFound(new { error = "No se encontro el inquiñino" });
+                    return NotFound(new { mensaje = "No se encontro el inquiñino" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return BadRequest(new { error = "Ocurrió un error al buscar el inquilino" });
+                return BadRequest(new { mensaje = "Ocurrió un error al buscar el inquilino" });
             }
         }
 

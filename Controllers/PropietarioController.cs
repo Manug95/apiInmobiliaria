@@ -33,18 +33,18 @@ namespace api_inmobiliaria.Controllers
             {
                 int? id = _tokenService.GetIdDelToken(User);
                 if (id == null)
-                    return Unauthorized(new { error = "No esta autenticado" });
+                    return Unauthorized(new { mensaje = "No esta autenticado" });
 
                 Propietario? propietario = await _repo.GetByIdAsync(id.Value);
                 if (propietario != null)
                     return Ok(PropietarioDTO.Parse(propietario));
                 else
-                    return NotFound(new { error = "No se encontro el propietario" });
+                    return NotFound(new { mensaje = "No se encontro el propietario" });
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return BadRequest(new { error = "No se pudo recuperar el propietario" });
+                return BadRequest(new { mensaje = "No se pudo recuperar el propietario" });
             }
         }
         
@@ -54,25 +54,28 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-                return Unauthorized(new { error = "No esta autenticado" });
+                return Unauthorized(new { mensaje = "No esta autenticado" });
                 
             if (!ModelState.IsValid)
-                return BadRequest(new { error = "Datos incorrectos" });
+                return BadRequest(new { mensaje = "Datos incorrectos" });
 
-            // Propietario propietario = Propietario.Parse(dto);
-            // Propietario? propietario = _repo.GetById(id.Value);
+            Propietario? propietario = await _repo.GetByIdAsync(id.Value);
+            if (propietario == null)
+                return NotFound(new { mensaje = "El propietario no existe" });
+
+            propietario.CopyValuesFrom(dto);
             dto.Id = id.Value;
 			try
 			{
-				if (await _repo.UpdateAsync(Propietario.Parse(dto)))
+				if (await _repo.UpdateAsync(propietario))
                     return Ok(dto);
                 else
-                    return BadRequest(new { error = "No se pudo actualizar el propietario" });
+                    return BadRequest(new { mensaje = "No se pudo actualizar el propietario" });
 			}
 			catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-				return BadRequest(new { error = "Ocurrió un error al actualizar el propietario" });
+				return BadRequest(new { mensaje = "Ocurrió un error al actualizar el propietario" });
 			}
 		}
 
@@ -82,11 +85,11 @@ namespace api_inmobiliaria.Controllers
         {
             try
             {
-                string hashed = HashearPassword(login.Clave!);
+                string hashed = HashearClave(login.Clave!);
 
                 Propietario? propietario = await _repo.GetByEmailAsync(login.Email!);
                 if (propietario == null || propietario.Clave != hashed)
-                    return Unauthorized(new { error = "Credenciales inválidas" });
+                    return Unauthorized(new { mensaje = "Credenciales inválidas" });
 
                 var claims = new List<Claim>
                 {
@@ -98,47 +101,49 @@ namespace api_inmobiliaria.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return BadRequest(new { error = "Error al loguearse" });
+                return BadRequest(new { mensaje = "Error al loguearse" });
             }
         }
         
-        [HttpPatch("cambiarContraseña")]
+        [HttpPatch("clave")]
         [Authorize]
-		public async Task<ActionResult> ChangePassword([FromBody] EditPassword editPassword)
+		public async Task<ActionResult> CambiarClave([FromBody] CambioClave cambioClave)
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null) 
-                return Unauthorized(new { error = "No esta autenticado" });
+                return Unauthorized(new { mensaje = "No esta autenticado" });
                 
             if (!ModelState.IsValid) 
-                return BadRequest(new { error = "Datos incorrectos" });
+                return BadRequest(new { mensaje = "Datos incorrectos" });
 
             Propietario? propietario = await _repo.GetByIdAsync(id.Value);
             if (propietario == null)
-                return NotFound(new { error = "Propietario no encontrado" });
+                return NotFound(new { mensaje = "Propietario no encontrado" });
 
-            string passwordActualHasheada = HashearPassword(editPassword.ClaveActual);
+            string passwordActualHasheada = HashearClave(cambioClave.ClaveActual);
             if (propietario.Clave != passwordActualHasheada)
-                return StatusCode(403, new { error = "Las contraseñas actuales no coinciden" });
+                return StatusCode(403, new { mensaje = "Las contraseñas actuales no coinciden" });
+
+            propietario.Clave = HashearClave(cambioClave.ClaveNueva);
             
 			try
 			{
-				if (await _repo.ChangePasswordAsync(id.Value, HashearPassword(editPassword.ClaveNueva)))
+				if (await _repo.UpdateClaveAsync(propietario))
                     return Ok();
                 else
-                    return BadRequest(new { error = "No se pudo cambiar la contraseña" });
+                    return BadRequest(new { mensaje = "No se pudo cambiar la contraseña" });
 			}
 			catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-				return BadRequest(new { error = "Ocurrió un error al cambiar la contraseña" });
+				return BadRequest(new { mensaje = "Ocurrió un error al cambiar la contraseña" });
 			}
 		}
 
-        private string HashearPassword(string password)
+        private string HashearClave(string clave)
         {
             return Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
+                password: clave,
                 salt: System.Text.Encoding.ASCII.GetBytes(_config["Salt"]!),
                 prf: KeyDerivationPrf.HMACSHA1,
                 iterationCount: 1000,

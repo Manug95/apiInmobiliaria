@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace api_inmobiliaria.Repositories.MySql
 {
-    public class InquilinoRepository : RepositoryBase, IInquilinoRepository
+    public class InquilinoRepository : RepositoryBaseMySql, IInquilinoRepository
     {
         public InquilinoRepository(IConfiguration config) : base(config) { }
 
@@ -66,7 +66,7 @@ namespace api_inmobiliaria.Repositories.MySql
             return Task.FromResult(inquilino);
         }
 
-        public Task<List<Inquilino>> ListAsync()
+        public Task<List<Inquilino>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }

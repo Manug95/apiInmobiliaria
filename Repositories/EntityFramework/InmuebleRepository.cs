@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class InmuebleRepository : RepositoryBase, IInmuebleRepository
+    public class InmuebleRepository : RepositoryBaseEF, IInmuebleRepository
     {
         public InmuebleRepository(BDContext context) : base(context) { }
 
@@ -28,11 +28,11 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             return await _dbContext!.Inmuebles
             .Include(i => i.Tipo)
-            //.Include(i => i.Duenio)
+            .Include(i => i.Duenio)
             .SingleOrDefaultAsync(i => i.Id == id);
         }
 
-        public Task<List<Inmueble>> ListAsync()
+        public Task<List<Inmueble>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }
@@ -73,54 +73,32 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<bool> UpdateAsync(Inmueble inmueble)
         {
-            try
-            {
-                // _dbContext!.Attach(inmueble);        //actualizo solo las propiedades listadas
-
-                // _dbContext!.Entry(inmueble).Property(i => i.Calle).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.NroCalle).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.IdTipoInmueble).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.Uso).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.CantidadAmbientes).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.Precio).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.Latitud).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.Longitud).IsModified = true;
-                // _dbContext!.Entry(inmueble).Property(i => i.Disponible).IsModified = true;
-                // _dbContext!.Entry(nuevo).Property(i => i.Foto).IsModified = true;
-                
-                //con esto se actualiza completo
-                _dbContext!.Inmuebles.Update(inmueble);
-                return (await _dbContext!.SaveChangesAsync()) > 0;
-            }
-            catch (DbUpdateException dbue)
-            {
-                Console.WriteLine(dbue);
-                throw new Exception("Error al actualizar el inmueble");
-            }
+            _dbContext!.Inmuebles.Update(inmueble);
+            return (await _dbContext!.SaveChangesAsync()) > 0;
         }
 
         public async Task<bool> UpdateDisponibleAsync(Inmueble inmueble)
         {
-            return await UpdateParcial(inmueble);
+            var entryInmueble = _dbContext!.Entry(inmueble);
+
+            if (entryInmueble.State == EntityState.Detached)
+                _dbContext!.Attach(inmueble);
+
+            entryInmueble.Property(nameof(Inmueble.Disponible)).IsModified = true;
+
+            return (await _dbContext!.SaveChangesAsync()) > 0;
         }
 
         public async Task<bool> UpdateFotoAsync(Inmueble inmueble)
         {
-            return await UpdateParcial(inmueble);
-        }
+            var entryInmueble = _dbContext!.Entry(inmueble);
 
-        private async Task<bool> UpdateParcial(Inmueble inmueble)
-        {
-            try
-            {
-                _dbContext!.Entry(inmueble).State = EntityState.Modified;
-                return (await _dbContext!.SaveChangesAsync()) > 0;
-            }
-            catch (DbUpdateException dbue)
-            {
-                Console.WriteLine(dbue);
-                throw new Exception("Error al actualizar el inmueble");
-            }
+            if (entryInmueble.State == EntityState.Detached)
+                _dbContext!.Attach(inmueble);
+
+            entryInmueble.Property(nameof(Inmueble.Foto)).IsModified = true;
+
+            return (await _dbContext!.SaveChangesAsync()) > 0;
         }
     }
 }

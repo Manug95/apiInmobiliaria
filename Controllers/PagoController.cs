@@ -27,16 +27,15 @@ namespace api_inmobiliaria.Controllers
 
             int? idPropietario = _tokenService.GetIdDelToken(User);
             if (!idPropietario.HasValue)
-                return Unauthorized(new { error = "No esta autenticado" });
-
-            Contrato? contrato = await repoContrato.GetByIdAsync(c);
-            if (contrato == null)
-                return BadRequest(new { error = "No existe el contrato" });
-            if (contrato!.Inmueble!.IdPropietario != idPropietario.Value)
-                return StatusCode(403, new { error = "Usted no es el propietario del inmueble de este contrato" });
-
+                return Unauthorized(new { mensaje = "No esta autenticado" });
             try
             {
+                Contrato? contrato = await repoContrato.GetByIdAsync(c);
+                if (contrato == null)
+                    return BadRequest(new { error = "No existe el contrato" });
+                if (contrato!.Inmueble!.IdPropietario != idPropietario.Value)
+                    return StatusCode(403, new { mensaje = "Usted no es el propietario del inmueble de este contrato" });
+
                 offset = (offset - 1) * limit;
                 List<Pago> pagos = await _repo.ListByContratoAsync(c, offset, limit);
                 return Ok(PagoDTO.ParseList(pagos));
@@ -44,7 +43,7 @@ namespace api_inmobiliaria.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return BadRequest(new { error = "Ocurrió un error al listar los pagos del contrato" });
+                return BadRequest(new { mensaje = "Ocurrió un error al listar los pagos del contrato" });
             }
         }
     }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class PagoRepository : RepositoryBase, IPagoRepository
+    public class PagoRepository : RepositoryBaseEF, IPagoRepository
     {
         public PagoRepository(BDContext context) : base(context) { }
 
@@ -28,7 +28,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        public Task<List<Pago>> ListAsync()
+        public Task<List<Pago>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }

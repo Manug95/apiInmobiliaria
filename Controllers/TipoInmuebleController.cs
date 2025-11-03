@@ -23,9 +23,9 @@ namespace api_inmobiliaria.Controllers
         {
             int? id = _tokenService.GetIdDelToken(User);
             if (id == null)
-                return Unauthorized(new { error = "No esta autenticado" });
+                return Unauthorized(new { mensaje = "No esta autenticado" });
             
-            return Ok(await _repo.ListAsync());
+            return Ok(await _repo.ListAsync(null, null));
         }
     }
 }

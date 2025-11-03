@@ -3,7 +3,7 @@ using InmobiliariaGutierrezManuel.Models;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class InquilinoRepository : RepositoryBase, IInquilinoRepository
+    public class InquilinoRepository : RepositoryBaseEF, IInquilinoRepository
     {
         public InquilinoRepository(BDContext context) : base(context) { }
 
@@ -22,7 +22,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             return await _dbContext!.Inquilinos.FindAsync(id);
         }
 
-        public Task<List<Inquilino>> ListAsync()
+        public Task<List<Inquilino>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }

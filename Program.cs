@@ -33,30 +33,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 ;
 
 builder.Services.AddScoped<ITokenService, TokenService>();
-/*var repoProvider = builder.Configuration.GetValue<string>("RepositoryProvider");
-if (repoProvider == "EntityFramework")
-{
-    builder.Services.AddScoped<IPropietarioRepository, api_inmobiliaria.Repositories.EntityFramework.PropietarioRepository>();
-    builder.Services.AddScoped<IInmuebleRepository, api_inmobiliaria.Repositories.EntityFramework.InmuebleRepository>();
-    builder.Services.AddScoped<IInquilinoRepository, api_inmobiliaria.Repositories.EntityFramework.InquilinoRepository>();
-    builder.Services.AddScoped<IContratoRepository, api_inmobiliaria.Repositories.EntityFramework.ContratoRepository>();
-    builder.Services.AddScoped<IPagoRepository, api_inmobiliaria.Repositories.EntityFramework.PagoRepository>();
 
-    builder.Services.AddDbContext<BDContext>(
-        dbContextOptions => dbContextOptions
-            .UseMySql(configuration["ConnectionStrings:EFMySql"], new MySqlServerVersion(new Version(80, 0, 43)))
-    );
-}
-else
-{
-    builder.Services.AddScoped<IPropietarioRepository, api_inmobiliaria.Repositories.MySql.PropietarioRepository>();
-    builder.Services.AddScoped<IInmuebleRepository, api_inmobiliaria.Repositories.MySql.InmuebleRepository>();
-    builder.Services.AddScoped<IInquilinoRepository, api_inmobiliaria.Repositories.MySql.InquilinoRepository>();
-    builder.Services.AddScoped<IContratoRepository, api_inmobiliaria.Repositories.MySql.ContratoRepository>();
-    builder.Services.AddScoped<IPagoRepository, api_inmobiliaria.Repositories.MySql.PagoRepository>();
-}*/
-
-if (builder.Configuration.GetValue<bool>("UsarEntityFrameworkMySql"))
+if (builder.Configuration.GetValue<bool>("UsarEntityFramework"))
 {
     builder.Services.AddScoped<IPropietarioRepository, api_inmobiliaria.Repositories.EntityFramework.PropietarioRepository>();
     builder.Services.AddScoped<IInmuebleRepository, api_inmobiliaria.Repositories.EntityFramework.InmuebleRepository>();
@@ -70,17 +48,23 @@ if (builder.Configuration.GetValue<bool>("UsarEntityFrameworkMySql"))
             .UseMySql(configuration["ConnectionStrings:EFMySql"], new MySqlServerVersion(new Version(80, 0, 43)))
     );
 }
-if (builder.Configuration.GetValue<bool>("UsarMysql"))
+else
 {
     builder.Services.AddScoped<IPropietarioRepository, api_inmobiliaria.Repositories.MySql.PropietarioRepository>();
     builder.Services.AddScoped<IInmuebleRepository, api_inmobiliaria.Repositories.MySql.InmuebleRepository>();
     builder.Services.AddScoped<IInquilinoRepository, api_inmobiliaria.Repositories.MySql.InquilinoRepository>();
     builder.Services.AddScoped<IContratoRepository, api_inmobiliaria.Repositories.MySql.ContratoRepository>();
     builder.Services.AddScoped<IPagoRepository, api_inmobiliaria.Repositories.MySql.PagoRepository>();
+    builder.Services.AddScoped<ITipoInmuebleRepository, api_inmobiliaria.Repositories.MySql.TipoInmuebleRepository>();
 }
 
 var app = builder.Build();
 
+app.UseCors(x => x
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+    
 // Uso de archivos estáticos (*.html, *.css, *.js, etc.)
 app.UseStaticFiles();
 
@@ -89,11 +73,6 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseCors(x => x
-	.AllowAnyOrigin()
-	.AllowAnyMethod()
-	.AllowAnyHeader());
 
 //app.UseHttpsRedirection();
 

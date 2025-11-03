@@ -7,6 +7,6 @@ namespace api_inmobiliaria.Interfaces
     {
         //metodos propios del repositorio de Propietario
         public Task<Propietario?> GetByEmailAsync(string email);
-        public Task<bool> ChangePasswordAsync(int id, string newPassword);
+        public Task<bool> UpdateClaveAsync(Propietario propietario);
     }
 }

@@ -35,6 +35,7 @@ public class ContratoDTO
     {
         ContratoDTO dto = new ContratoDTO
         {
+            Id = contrato.Id,
             IdInmueble = contrato.IdInmueble,
             IdInquilino = contrato.IdInquilino,
             MontoMensual = contrato.MontoMensual,
@@ -57,23 +58,7 @@ public class ContratoDTO
 
         foreach (Contrato c in contratos)
         {
-            ContratoDTO dto = new ContratoDTO
-            {
-                Id = c.Id,
-                IdInmueble = c.IdInmueble,
-                IdInquilino = c.IdInquilino,
-                MontoMensual = c.MontoMensual,
-                FechaInicio = c.FechaInicio,
-                FechaFin = c.FechaFin,
-                FechaTerminado = c.FechaTerminado
-            };
-
-            if (c.Inmueble != null)
-                dto.Inmueble = InmuebleDTO.Parse(c.Inmueble);
-            if (c.Inquilino != null)
-                dto.Inquilino = InquilinoDTO.Parse(c.Inquilino);
-
-            dtos.Add(dto);
+            dtos.Add(Parse(c));
         }
 
         return dtos;

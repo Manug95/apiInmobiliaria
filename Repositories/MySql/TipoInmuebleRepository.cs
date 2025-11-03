@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace api_inmobiliaria.Repositories.MySql
 {
-    public class TipoInmuebleRepository : RepositoryBase, ITipoInmuebleRepository
+    public class TipoInmuebleRepository : RepositoryBaseMySql, ITipoInmuebleRepository
     {
         public TipoInmuebleRepository(IConfiguration configuration) : base(configuration) { }
         
@@ -23,7 +23,7 @@ namespace api_inmobiliaria.Repositories.MySql
             throw new NotImplementedException();
         }
 
-        public Task<List<TipoInmueble>> ListAsync()
+        public Task<List<TipoInmueble>> ListAsync(int? offset, int? limit)
         {
             var tiposInmuebles = new List<TipoInmueble>();
 

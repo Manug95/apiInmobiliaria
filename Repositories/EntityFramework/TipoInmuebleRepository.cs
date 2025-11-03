@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class TipoInmuebleRepository : RepositoryBase, ITipoInmuebleRepository
+    public class TipoInmuebleRepository : RepositoryBaseEF, ITipoInmuebleRepository
     {
         public TipoInmuebleRepository(BDContext context) : base(context) { }
 
@@ -23,7 +23,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        public async Task<List<TipoInmueble>> ListAsync()
+        public async Task<List<TipoInmueble>> ListAsync(int? offset, int? limit)
         {
             return await _dbContext!.TipoInmuebles.ToListAsync();
         }

@@ -10,10 +10,4 @@ public class InmuebleFotoFileDTO
 
     [FromForm(Name = "foto")]
     public IFormFile? Foto { get; set; }
-
-    /*public InmuebleFotoFileDTO(string InmuebleJson, IFormFile Foto)
-    {
-        this.InmuebleJson = InmuebleJson;
-        this.Foto = Foto;
-    }*/
 }

@@ -92,4 +92,22 @@ public class Propietario
         return propietarios;
     }
 
+    public void CopyValuesFrom(Propietario propietario)
+    {
+        Nombre = propietario.Nombre;
+        Apellido = propietario.Apellido;
+        Dni = propietario.Dni;
+        Email = propietario.Email;
+        Telefono = propietario.Telefono;
+    }
+
+    public void CopyValuesFrom(PropietarioDTO dto)
+    {
+        Nombre = dto.Nombre;
+        Apellido = dto.Apellido;
+        Dni = dto.Dni;
+        Email = dto.Email;
+        Telefono = dto.Telefono;
+    }
+
 }

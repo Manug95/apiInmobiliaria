@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace api_inmobiliaria.Models
 {
-    public class EditPassword
+    public class CambioClave
     {
         [Required(ErrorMessage = "La contraseña actual es requerida")]
         [DataType(DataType.Password)]
@@ -14,7 +14,7 @@ namespace api_inmobiliaria.Models
         [StringLength(60, ErrorMessage = "muy lago, max 60 caracteres")]
         public string ClaveNueva { get; set; }
 
-        public EditPassword(string claveActual, string claveNueva)
+        public CambioClave(string claveActual, string claveNueva)
         {
             this.ClaveActual = claveActual;
             this.ClaveNueva = claveNueva;

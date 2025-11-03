@@ -50,7 +50,6 @@ public class InmuebleDTO
             Id = inmueble.Id,
             IdTipoInmueble = inmueble.IdTipoInmueble,
             IdPropietario = inmueble.IdPropietario,
-            TipoInmueble = inmueble.Tipo!.Tipo,
             Uso = inmueble.Uso,
             CantidadAmbientes = inmueble.CantidadAmbientes,
             Precio = inmueble.Precio,
@@ -61,6 +60,9 @@ public class InmuebleDTO
             Disponible = inmueble.Disponible,
             Foto = inmueble.Foto
         };
+
+        if (inmueble.Tipo != null)
+            dto.TipoInmueble = inmueble.Tipo.Tipo;
 
         if (inmueble.Duenio != null)
             dto.Duenio = PropietarioDTO.Parse(inmueble.Duenio);
@@ -74,27 +76,7 @@ public class InmuebleDTO
 
         foreach (var i in inmuebles)
         {
-            InmuebleDTO dto =  new InmuebleDTO
-            {
-                Id = i.Id,
-                IdTipoInmueble = i.IdTipoInmueble,
-                IdPropietario = i.IdPropietario,
-                TipoInmueble = i.Tipo!.Tipo,
-                Uso = i.Uso,
-                CantidadAmbientes = i.CantidadAmbientes,
-                Precio = i.Precio,
-                Calle = i.Calle,
-                NroCalle = i.NroCalle,
-                Latitud = i.Latitud,
-                Longitud = i.Longitud,
-                Disponible = i.Disponible,
-                Foto = i.Foto
-            };
-
-            if (i.Duenio != null)
-                dto.Duenio = PropietarioDTO.Parse(i.Duenio);
-
-            dtos.Add(dto);
+            dtos.Add(Parse(i));
         }
 
         return dtos;

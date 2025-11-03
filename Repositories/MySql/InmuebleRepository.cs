@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace api_inmobiliaria.Repositories.MySql
 {
-    public class InmuebleRepository : RepositoryBase, IInmuebleRepository
+    public class InmuebleRepository : RepositoryBaseMySql, IInmuebleRepository
     {
         public InmuebleRepository(IConfiguration config) : base(config) { }
 
@@ -168,7 +168,9 @@ namespace api_inmobiliaria.Repositories.MySql
                         ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                         p.{nameof(Propietario.Nombre)} AS nombreDuenio, 
                         p.{nameof(Propietario.Apellido)} AS apellidoDuenio, 
-                        p.{nameof(Propietario.Dni)} AS dniDuenio 
+                        p.{nameof(Propietario.Dni)} AS dniDuenio, 
+                        p.{nameof(Propietario.Email)} AS emailDuenio, 
+                        p.{nameof(Propietario.Telefono)} AS telDuenio 
                     FROM inmuebles AS i 
                     INNER JOIN tipos_inmueble AS ti 
                         ON i.{nameof(Inmueble.IdTipoInmueble)} = ti.id 
@@ -199,14 +201,16 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
-                                Foto = reader.GetString(nameof(Inmueble.Foto)),
+                                Foto = reader[nameof(Inmueble.Foto)] == DBNull.Value ? null : reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
                                     Id = reader.GetInt32(nameof(Inmueble.IdPropietario)),
                                     Nombre = reader.GetString("nombreDuenio"),
                                     Apellido = reader.GetString("apellidoDuenio"),
-                                    Dni = reader.GetString("dniDuenio")
+                                    Dni = reader.GetString("dniDuenio"),
+                                    Email = reader.GetString("emailDuenio"),
+                                    Telefono = reader.GetString("telDuenio")
                                 },
                                 Tipo = new TipoInmueble
                                 {
@@ -222,7 +226,7 @@ namespace api_inmobiliaria.Repositories.MySql
             return Task.FromResult(inmueble);
         }
 
-        public Task<List<Inmueble>> ListAsync()
+        public Task<List<Inmueble>> ListAsync(int? offset, int? limit)
         {
             var inmuebles = new List<Inmueble>();
 
@@ -245,7 +249,9 @@ namespace api_inmobiliaria.Repositories.MySql
                         ti.{nameof(TipoInmueble.Tipo)}, 
                         p.{nameof(Propietario.Nombre)}, 
                         p.{nameof(Propietario.Apellido)}, 
-                        p.{nameof(Propietario.Dni)} 
+                        p.{nameof(Propietario.Dni)}, 
+                        p.{nameof(Propietario.Email)} AS emailDuenio, 
+                        p.{nameof(Propietario.Telefono)} AS telDuenio 
                     FROM inmuebles AS i 
                     INNER JOIN tipos_inmueble AS ti 
                         ON i.{nameof(Inmueble.IdTipoInmueble)} = ti.id 
@@ -254,23 +260,17 @@ namespace api_inmobiliaria.Repositories.MySql
                     WHERE {nameof(Inmueble.Borrado)} = 0"
                 ;
 
-                /*if (disponible >= 0 && disponible < 2)
-                    sql += $" AND {nameof(Inmueble.Disponible)} = {disponible}";
-
-                if (!string.IsNullOrWhiteSpace(nomApeProp))
-                    sql += $" AND (p.{nameof(Propietario.Nombre)} LIKE @nomApe OR p.{nameof(Propietario.Apellido)} LIKE @nomApe)";
-
-                if (offset.HasValue && limit.HasValue)
-                    sql += $" LIMIT @limit OFFSET @offset";*/
+                if (offset.HasValue && offset.Value > 0)
+                    sql += " OFFSET @offset";
+                if (limit.HasValue)
+                    sql += " LIMIT @limit";
 
                 using (var command = new MySqlCommand(sql + ";", connection))
                 {
-                    /*if (!string.IsNullOrWhiteSpace(nomApeProp)) command.Parameters.AddWithValue($"nomApe", $"%{nomApeProp}%");
-                    if (offset.HasValue && limit.HasValue)
-                    {
-                        command.Parameters.AddWithValue($"limit", limit.Value);
-                        command.Parameters.AddWithValue($"offset", (offset.Value - 1) * limit.Value);
-                    }*/
+                    if (offset.HasValue && offset.Value > 0)
+                        command.Parameters.AddWithValue("offset", offset.Value);
+                    if (limit.HasValue)
+                        command.Parameters.AddWithValue("limit", limit.Value);
 
                     connection.Open();
 
@@ -290,14 +290,16 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
-                                Foto = reader.GetString(nameof(Inmueble.Foto)),
+                                Foto = reader[nameof(Inmueble.Foto)] == DBNull.Value ? null : reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
                                     Id = reader.GetInt32(nameof(Inmueble.IdPropietario)),
                                     Nombre = reader.GetString(nameof(Propietario.Nombre)),
                                     Apellido = reader.GetString(nameof(Propietario.Apellido)),
-                                    Dni = reader.GetString(nameof(Propietario.Dni))
+                                    Dni = reader.GetString(nameof(Propietario.Dni)),
+                                    Email = reader.GetString("emailDuenio"),
+                                    Telefono = reader.GetString("telDuenio")
                                 },
                                 Tipo = new TipoInmueble
                                 {
@@ -336,7 +338,9 @@ namespace api_inmobiliaria.Repositories.MySql
                             ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                             p.{nameof(Propietario.Nombre)} AS nombreProp, 
                             p.{nameof(Propietario.Apellido)} AS apellidoProp, 
-                            p.{nameof(Propietario.Dni)} AS dniProp 
+                            p.{nameof(Propietario.Dni)} AS dniProp, 
+                            p.{nameof(Propietario.Email)} AS emailDuenio, 
+                            p.{nameof(Propietario.Telefono)} AS telDuenio 
                         FROM inmuebles AS i 
                         INNER JOIN tipos_inmueble AS ti 
                             ON i.{nameof(Inmueble.IdTipoInmueble)} = ti.id 
@@ -350,20 +354,20 @@ namespace api_inmobiliaria.Repositories.MySql
                             AND c.{nameof(Contrato.FechaTerminado)} IS NULL"
                     ;
 
-                    if (offset.HasValue)
-                        sql += $" OFFSET @offset";
+                    if (offset.HasValue && offset.Value > 0)
+                        sql += " OFFSET @offset";
                     if (limit.HasValue)
-                        sql += $" LIMIT @limit";
+                        sql += " LIMIT @limit";
 
                     using (var command = new MySqlCommand(sql + ";", connection))
                     {
                         command.Parameters.AddWithValue($"{nameof(Inmueble.IdPropietario)}", idProp);
                         command.Parameters.AddWithValue("hoy", DateTime.Today);
 
-                        if (offset.HasValue && limit.HasValue)
-                            command.Parameters.AddWithValue($"offset", offset.Value);
+                        if (offset.HasValue && offset.Value > 0)
+                            command.Parameters.AddWithValue("offset", offset.Value);
                         if (limit.HasValue)
-                            command.Parameters.AddWithValue($"limit", limit.Value);
+                            command.Parameters.AddWithValue("limit", limit.Value);
 
                         connection.Open();
 
@@ -383,14 +387,16 @@ namespace api_inmobiliaria.Repositories.MySql
                                     Latitud = reader.GetDecimal("latitud"),
                                     Longitud = reader.GetDecimal("longitud"),
                                     Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
-                                    Foto = reader.GetString(nameof(Inmueble.Foto)),
+                                    Foto = reader[nameof(Inmueble.Foto)] == DBNull.Value ? null : reader.GetString(nameof(Inmueble.Foto)),
                                     Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                     Duenio = new Propietario
                                     {
                                         Id = reader.GetInt32(nameof(Inmueble.IdPropietario)),
                                         Nombre = reader.GetString("nombreProp"),
                                         Apellido = reader.GetString("apellidoProp"),
-                                        Dni = reader.GetString("dniProp")
+                                        Dni = reader.GetString("dniProp"),
+                                        Email = reader.GetString("emailDuenio"),
+                                        Telefono = reader.GetString("telDuenio")
                                     },
                                     Tipo = new TipoInmueble
                                     {
@@ -429,7 +435,9 @@ namespace api_inmobiliaria.Repositories.MySql
                         ti.{nameof(TipoInmueble.Tipo)} AS tipoInmueble, 
                         p.{nameof(Propietario.Nombre)} AS nombreProp, 
                         p.{nameof(Propietario.Apellido)} AS apellidoProp, 
-                        p.{nameof(Propietario.Dni)} AS dniProp 
+                        p.{nameof(Propietario.Dni)} AS dniProp, 
+                        p.{nameof(Propietario.Email)} AS emailDuenio, 
+                        p.{nameof(Propietario.Telefono)} AS telDuenio 
                     FROM inmuebles AS i 
                     INNER JOIN tipos_inmueble AS ti 
                         ON i.{nameof(Inmueble.IdTipoInmueble)} = ti.id 
@@ -438,19 +446,19 @@ namespace api_inmobiliaria.Repositories.MySql
                     WHERE i.{nameof(Inmueble.Borrado)} = 0 AND i.{nameof(Inmueble.IdPropietario)} = @{nameof(Inmueble.IdPropietario)}"
                 ;
 
-                if (offset.HasValue)
-                    sql += $" OFFSET @offset";
+                if (offset.HasValue && offset.Value > 0)
+                    sql += " OFFSET @offset";
                 if (limit.HasValue)
-                    sql += $" LIMIT @limit";
+                    sql += " LIMIT @limit";
 
                 using (var command = new MySqlCommand(sql + ";", connection))
                 {
                     command.Parameters.AddWithValue($"{nameof(Inmueble.IdPropietario)}", idProp);
 
-                    if (offset.HasValue && limit.HasValue)
-                        command.Parameters.AddWithValue($"offset", offset.Value);
+                    if (offset.HasValue && offset.Value > 0)
+                        command.Parameters.AddWithValue("offset", offset.Value);
                     if (limit.HasValue)
-                        command.Parameters.AddWithValue($"limit", limit.Value);
+                        command.Parameters.AddWithValue("limit", limit.Value);
 
                     connection.Open();
 
@@ -470,14 +478,16 @@ namespace api_inmobiliaria.Repositories.MySql
                                 Latitud = reader.GetDecimal("latitud"),
                                 Longitud = reader.GetDecimal("longitud"),
                                 Disponible = reader.GetBoolean(nameof(Inmueble.Disponible)),
-                                Foto = reader.GetString(nameof(Inmueble.Foto)),
+                                Foto = reader[nameof(Inmueble.Foto)] == DBNull.Value ? null : reader.GetString(nameof(Inmueble.Foto)),
                                 Precio = reader.GetDecimal(nameof(Inmueble.Precio)),
                                 Duenio = new Propietario
                                 {
                                     Id = reader.GetInt32(nameof(Inmueble.IdPropietario)),
                                     Nombre = reader.GetString("nombreProp"),
                                     Apellido = reader.GetString("apellidoProp"),
-                                    Dni = reader.GetString("dniProp")
+                                    Dni = reader.GetString("dniProp"),
+                                    Email = reader.GetString("emailDuenio"),
+                                    Telefono = reader.GetString("telDuenio")
                                 },
                                 Tipo = new TipoInmueble
                                 {

@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace api_inmobiliaria.Repositories.MySql
 {
-    public class PagoRepository : RepositoryBase, IPagoRepository
+    public class PagoRepository : RepositoryBaseMySql, IPagoRepository
     {
         public PagoRepository(IConfiguration configuration) : base(configuration) { }
 
@@ -28,7 +28,7 @@ namespace api_inmobiliaria.Repositories.MySql
             throw new NotImplementedException();
         }
 
-        public Task<List<Pago>> ListAsync()
+        public Task<List<Pago>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }
@@ -60,18 +60,19 @@ namespace api_inmobiliaria.Repositories.MySql
                     WHERE p.{nameof(Pago.IdContrato)} = @{nameof(Pago.IdContrato)}"
                 ;
 
-                if (offset.HasValue && limit.HasValue)
-                    sql += $" LIMIT @limit OFFSET @offset";
+                if (offset.HasValue && offset.Value > 0)
+                    sql += " OFFSET @offset";
+                if (limit.HasValue)
+                    sql += " LIMIT @limit";
 
                 using (var command = new MySqlCommand(sql + ";", connection))
                 {
                     command.Parameters.AddWithValue($"{nameof(Pago.IdContrato)}", idCon);
 
-                    if (offset.HasValue && limit.HasValue)
-                    {
-                        command.Parameters.AddWithValue("limit", limit.Value);
+                    if (offset.HasValue && offset.Value > 0)
                         command.Parameters.AddWithValue("offset", offset.Value);
-                    }
+                    if (limit.HasValue)
+                        command.Parameters.AddWithValue("limit", limit.Value);
 
                     connection.Open();
 

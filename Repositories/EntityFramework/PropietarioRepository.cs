@@ -5,28 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class PropietarioRepository : RepositoryBase, IPropietarioRepository
+    public class PropietarioRepository : RepositoryBaseEF, IPropietarioRepository
     {
         public PropietarioRepository(BDContext context) : base(context) { }
-
-        public async Task<bool> ChangePasswordAsync(int id, string newPassword)
-        {
-            try
-            {
-                Propietario? propietario = await GetByIdAsync(id);
-                
-                if (propietario == null) return false;
-
-                propietario.Clave = newPassword;
-
-                return (await _dbContext!.SaveChangesAsync()) > 0;
-            }
-            catch (DbUpdateException dbue)
-            {
-                Console.WriteLine(dbue);
-                throw new Exception("Error al actualizar el propietario");
-            }
-        }
 
         public Task<int> CreateAsync(Propietario entidad)
         {
@@ -53,7 +34,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             return await _dbContext!.Propietarios.FindAsync(id);
         }
 
-        public Task<List<Propietario>> ListAsync()
+        public Task<List<Propietario>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }
@@ -63,20 +44,22 @@ namespace api_inmobiliaria.Repositories.EntityFramework
             throw new NotImplementedException();
         }
 
-        public async Task<bool> UpdateAsync(Propietario propietarioModificado)
+        public async Task<bool> UpdateAsync(Propietario propietario)
         {
             try
             {
-                Propietario? propietario = await GetByIdAsync(propietarioModificado.Id);
-                
-                if (propietario == null) return false;
-                
-                propietario.Nombre = propietarioModificado.Nombre;
-                propietario.Apellido = propietarioModificado.Apellido;
-                propietario.Email = propietarioModificado.Email;
-                propietario.Dni = propietarioModificado.Dni;
-                propietario.Telefono = propietarioModificado.Telefono;
+                // var entryPropietario = _dbContext!.Entry(propietario);
 
+                // if (entryPropietario.State == EntityState.Detached)
+                //     _dbContext!.Attach(propietario);
+
+                // entryPropietario.Property(nameof(Propietario.Nombre)).IsModified = true;
+                // entryPropietario.Property(nameof(Propietario.Apellido)).IsModified = true;
+                // entryPropietario.Property(nameof(Propietario.Email)).IsModified = true;
+                // entryPropietario.Property(nameof(Propietario.Dni)).IsModified = true;
+                // entryPropietario.Property(nameof(Propietario.Telefono)).IsModified = true;
+
+                _dbContext!.Propietarios.Update(propietario);
                 return (await _dbContext!.SaveChangesAsync()) > 0;
             }
             catch (DbUpdateException dbue)
@@ -84,6 +67,18 @@ namespace api_inmobiliaria.Repositories.EntityFramework
                 Console.WriteLine(dbue);
                 throw new Exception("Error al actualizar el propietario");
             }
+        }
+
+        public async Task<bool> UpdateClaveAsync(Propietario propietario)
+        {
+            var entryPropietario = _dbContext!.Entry(propietario);
+
+            if (entryPropietario.State == EntityState.Detached)
+                _dbContext!.Attach(propietario);
+
+            entryPropietario.Property(nameof(Propietario.Clave)).IsModified = true;
+
+            return (await _dbContext!.SaveChangesAsync()) > 0;
         }
     }
 }

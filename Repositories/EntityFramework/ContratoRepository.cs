@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api_inmobiliaria.Repositories.EntityFramework
 {
-    public class ContratoRepository : RepositoryBase, IContratoRepository
+    public class ContratoRepository : RepositoryBaseEF, IContratoRepository
     {
         public ContratoRepository(BDContext context) : base(context) { }
 
@@ -21,12 +21,32 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         public async Task<Contrato?> GetByIdAsync(int id)
         {
             IQueryable<Contrato> contrato = _dbContext!.Contratos
-                .Include(C => C.Inmueble);
-            
+                .Include(C => C.Inmueble)
+                    .ThenInclude(i => i!.Tipo)
+                .Include(c => c.Inquilino)
+            ;
+
             return await contrato.SingleOrDefaultAsync(c => c.Id == id);
         }
+        
+        public async Task<Contrato?> GetVigenteByInmuebleAsync(int idInmueble)
+        {
+            DateTime hoy = DateTime.Today;
 
-        public Task<List<Contrato>> ListAsync()
+            IQueryable<Contrato> contrato = _dbContext!.Contratos
+                .Include(C => C.Inmueble)
+                    .ThenInclude(i => i!.Tipo)
+                .Include(c => c.Inquilino)
+            ;
+            
+            return await contrato.SingleOrDefaultAsync(c =>
+                c.IdInmueble == idInmueble &&
+                (c.FechaInicio <= hoy && hoy <= c.FechaFin) &&
+                c.FechaTerminado == null
+            );
+        }
+
+        public Task<List<Contrato>> ListAsync(int? offset, int? limit)
         {
             throw new NotImplementedException();
         }
@@ -37,11 +57,55 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
             IQueryable<Contrato> contratos = _dbContext!.Contratos
                 .Include(c => c.Inquilino)
-                // .Include(c => c.Inmueble)
-                //     .ThenInclude(i => i!.Duenio)
+                .Include(c => c.Inmueble)
+                    .ThenInclude(i => i!.Duenio)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Tipo)
                 .Where(c => (c.FechaInicio <= hoy && hoy <= c.FechaFin) && c.FechaTerminado == null && c.Inmueble!.IdPropietario == idProp)
+                .OrderBy(c => c.Id)
+            ;
+
+            if (offset.HasValue && offset.Value > 0)
+                contratos = contratos.Skip(offset.Value);
+            if (limit.HasValue)
+                contratos = contratos.Take(limit.Value);
+
+            return await contratos.ToListAsync();
+        }
+
+        public async Task<List<Contrato>> ListByPropietario(int idProp, int? offset, int? limit)
+        {
+            DateTime hoy = DateTime.Today;
+
+            IQueryable<Contrato> contratos = _dbContext!.Contratos
+                .Include(c => c.Inquilino)
+                .Include(c => c.Inmueble)
+                    .ThenInclude(i => i!.Duenio)
+                .Include(c => c.Inmueble)
+                    .ThenInclude(i => i!.Tipo)
+                .Where(c => c.Inmueble!.IdPropietario == idProp)
+                .OrderBy(c => c.Id)
+            ;
+
+            if (offset.HasValue && offset.Value > 0)
+                contratos = contratos.Skip(offset.Value);
+            if (limit.HasValue)
+                contratos = contratos.Take(limit.Value);
+
+            return await contratos.ToListAsync();
+        }
+        
+        public async Task<List<Contrato>> ListByInmuebleAsync(int idInmueble, int? offset, int? limit)
+        {
+            DateTime hoy = DateTime.Today;
+
+            IQueryable<Contrato> contratos = _dbContext!.Contratos
+                .Include(c => c.Inquilino)
+                .Include(c => c.Inmueble)
+                    .ThenInclude(i => i!.Tipo)
+                .Include(c => c.Inmueble)
+                    .ThenInclude(i => i!.Duenio)
+                .Where(c => c.IdInmueble == idInmueble)
                 .OrderBy(c => c.Id)
             ;
 
