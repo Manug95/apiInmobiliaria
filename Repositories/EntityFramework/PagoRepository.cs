@@ -35,7 +35,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<List<Pago>>ListByContratoAsync(int idCon, int? offset, int? limit)
         {
-            IQueryable<Pago> pagos = _dbContext!.Pagos
+            IQueryable<Pago> pagos = _dbContext.Pagos
                 //.Include(p => p.Contrato)
                 .Where(p => p.Estado && p.IdContrato == idCon)
                 .OrderBy(p => p.Id)

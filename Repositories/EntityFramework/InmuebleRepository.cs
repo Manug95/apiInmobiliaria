@@ -15,8 +15,8 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<int> CreateAsync(Inmueble inmueble)
         {
-            _dbContext!.Inmuebles.Add(inmueble);
-            return await _dbContext!.SaveChangesAsync();
+            _dbContext.Inmuebles.Add(inmueble);
+            return await _dbContext.SaveChangesAsync();
         }
 
         public Task<bool> DeleteAsync(int id)
@@ -26,7 +26,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<Inmueble?> GetByIdAsync(int id)
         {
-            return await _dbContext!.Inmuebles
+            return await _dbContext.Inmuebles
             .Include(i => i.Tipo)
             .Include(i => i.Duenio)
             .SingleOrDefaultAsync(i => i.Id == id);
@@ -41,7 +41,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Inmueble> inmuebles = _dbContext!.Contratos
+            IQueryable<Inmueble> inmuebles = _dbContext.Contratos
                 .Include(c => c.Inquilino)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Tipo)
@@ -59,7 +59,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<List<Inmueble>> ListByPropietarioAsync(int idProp, int? offset, int? limit)
         {
-            IQueryable<Inmueble> inmuebles = _dbContext!.Inmuebles
+            IQueryable<Inmueble> inmuebles = _dbContext.Inmuebles
                 .Include(i => i.Tipo)
                 .Where(i => i.IdPropietario == idProp)
                 .OrderBy(i => i.Id)
@@ -73,32 +73,32 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<bool> UpdateAsync(Inmueble inmueble)
         {
-            _dbContext!.Inmuebles.Update(inmueble);
-            return (await _dbContext!.SaveChangesAsync()) > 0;
+            _dbContext.Inmuebles.Update(inmueble);
+            return (await _dbContext.SaveChangesAsync()) > 0;
         }
 
         public async Task<bool> UpdateDisponibleAsync(Inmueble inmueble)
         {
-            var entryInmueble = _dbContext!.Entry(inmueble);
+            var entryInmueble = _dbContext.Entry(inmueble);
 
             if (entryInmueble.State == EntityState.Detached)
-                _dbContext!.Attach(inmueble);
+                _dbContext.Attach(inmueble);
 
             entryInmueble.Property(nameof(Inmueble.Disponible)).IsModified = true;
 
-            return (await _dbContext!.SaveChangesAsync()) > 0;
+            return (await _dbContext.SaveChangesAsync()) > 0;
         }
 
         public async Task<bool> UpdateFotoAsync(Inmueble inmueble)
         {
-            var entryInmueble = _dbContext!.Entry(inmueble);
+            var entryInmueble = _dbContext.Entry(inmueble);
 
             if (entryInmueble.State == EntityState.Detached)
-                _dbContext!.Attach(inmueble);
+                _dbContext.Attach(inmueble);
 
             entryInmueble.Property(nameof(Inmueble.Foto)).IsModified = true;
 
-            return (await _dbContext!.SaveChangesAsync()) > 0;
+            return (await _dbContext.SaveChangesAsync()) > 0;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<Contrato?> GetByIdAsync(int id)
         {
-            IQueryable<Contrato> contrato = _dbContext!.Contratos
+            IQueryable<Contrato> contrato = _dbContext.Contratos
                 .Include(C => C.Inmueble)
                     .ThenInclude(i => i!.Tipo)
                 .Include(c => c.Inquilino)
@@ -33,7 +33,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Contrato> contrato = _dbContext!.Contratos
+            IQueryable<Contrato> contrato = _dbContext.Contratos
                 .Include(C => C.Inmueble)
                     .ThenInclude(i => i!.Tipo)
                 .Include(c => c.Inquilino)
@@ -55,7 +55,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Contrato> contratos = _dbContext!.Contratos
+            IQueryable<Contrato> contratos = _dbContext.Contratos
                 .Include(c => c.Inquilino)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Duenio)
@@ -77,7 +77,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Contrato> contratos = _dbContext!.Contratos
+            IQueryable<Contrato> contratos = _dbContext.Contratos
                 .Include(c => c.Inquilino)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Duenio)
@@ -99,7 +99,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             DateTime hoy = DateTime.Today;
 
-            IQueryable<Contrato> contratos = _dbContext!.Contratos
+            IQueryable<Contrato> contratos = _dbContext.Contratos
                 .Include(c => c.Inquilino)
                 .Include(c => c.Inmueble)
                     .ThenInclude(i => i!.Tipo)

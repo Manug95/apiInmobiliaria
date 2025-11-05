@@ -25,7 +25,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<List<TipoInmueble>> ListAsync(int? offset, int? limit)
         {
-            return await _dbContext!.TipoInmuebles.ToListAsync();
+            return await _dbContext.TipoInmuebles.ToListAsync();
         }
 
         public Task<bool> UpdateAsync(TipoInmueble entidad)

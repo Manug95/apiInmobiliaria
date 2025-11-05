@@ -19,7 +19,7 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<Inquilino?> GetByIdAsync(int id)
         {
-            return await _dbContext!.Inquilinos.FindAsync(id);
+            return await _dbContext.Inquilinos.FindAsync(id);
         }
 
         public Task<List<Inquilino>> ListAsync(int? offset, int? limit)

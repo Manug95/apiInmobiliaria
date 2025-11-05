@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using api_inmobiliaria.Interfaces;
 using InmobiliariaGutierrezManuel.Models;
@@ -106,13 +107,28 @@ namespace api_inmobiliaria.Controllers
             if (request.Foto == null || request.InmuebleJson == null)
                 return BadRequest(new { mensaje = "Faltan datos" });
 
-            InmuebleDTO? dto = JsonSerializer.Deserialize<InmuebleDTO>(request.InmuebleJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
+            InmuebleDTO? dto;
+            try
+            {
+                dto = JsonSerializer.Deserialize<InmuebleDTO>(request.InmuebleJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                return BadRequest(new { mensaje = "Json de Inmueble mal formado" });
+            }
+            
             if (dto == null)
                 return BadRequest(new { mensaje = "Json de Inmueble mal formado" });
 
+            dto.IdPropietario = id.Value;
+            dto.Disponible = false;
+
+            List<ValidationResult> resultadoalidacion = dto.Validar();
+            if (resultadoalidacion.Count > 0)
+                return BadRequest(new { mensaje = FormarMensajeErroresValidacion(resultadoalidacion) });
+
             Inmueble inmueble = Inmueble.Parse(dto);
-            inmueble.IdPropietario = id.Value;
 
             try
             {
@@ -132,7 +148,7 @@ namespace api_inmobiliaria.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return StatusCode(500, new { mensaje = "Ocurrió un error inesperado. No se pudo crear el inmueble" });
+                return StatusCode(500, new { mensaje = "Ocurrió un error. No se pudo crear el inmueble" });
             }
         }
 
@@ -195,6 +211,18 @@ namespace api_inmobiliaria.Controllers
             var ruta = Path.Combine(_env.WebRootPath, "Uploads", $"foto_{id}" + Path.GetExtension(nombreImagen));
             if (System.IO.File.Exists(ruta))
                 System.IO.File.Delete(ruta);
+        }
+
+        private string FormarMensajeErroresValidacion(List<ValidationResult> resultadoalidacion)
+        {
+            string errores = "";
+            for (int i = 0; i < resultadoalidacion.Count; i++)
+            {
+                errores += resultadoalidacion.ElementAt(i).ErrorMessage;
+                if (i < resultadoalidacion.Count - 1)
+                    errores += ", ";
+            }
+            return errores;
         }
     }
 }

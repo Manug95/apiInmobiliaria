@@ -26,12 +26,12 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<Propietario?> GetByEmailAsync(string email)
         {
-            return await _dbContext!.Propietarios.FirstOrDefaultAsync(p => p.Email == email);
+            return await _dbContext.Propietarios.FirstOrDefaultAsync(p => p.Email == email);
         }
 
         public async Task<Propietario?> GetByIdAsync(int id)
         {
-            return await _dbContext!.Propietarios.FindAsync(id);
+            return await _dbContext.Propietarios.FindAsync(id);
         }
 
         public Task<List<Propietario>> ListAsync(int? offset, int? limit)
@@ -48,19 +48,8 @@ namespace api_inmobiliaria.Repositories.EntityFramework
         {
             try
             {
-                // var entryPropietario = _dbContext!.Entry(propietario);
-
-                // if (entryPropietario.State == EntityState.Detached)
-                //     _dbContext!.Attach(propietario);
-
-                // entryPropietario.Property(nameof(Propietario.Nombre)).IsModified = true;
-                // entryPropietario.Property(nameof(Propietario.Apellido)).IsModified = true;
-                // entryPropietario.Property(nameof(Propietario.Email)).IsModified = true;
-                // entryPropietario.Property(nameof(Propietario.Dni)).IsModified = true;
-                // entryPropietario.Property(nameof(Propietario.Telefono)).IsModified = true;
-
-                _dbContext!.Propietarios.Update(propietario);
-                return (await _dbContext!.SaveChangesAsync()) > 0;
+                _dbContext.Propietarios.Update(propietario);
+                return (await _dbContext.SaveChangesAsync()) > 0;
             }
             catch (DbUpdateException dbue)
             {
@@ -71,14 +60,14 @@ namespace api_inmobiliaria.Repositories.EntityFramework
 
         public async Task<bool> UpdateClaveAsync(Propietario propietario)
         {
-            var entryPropietario = _dbContext!.Entry(propietario);
+            var entryPropietario = _dbContext.Entry(propietario);
 
             if (entryPropietario.State == EntityState.Detached)
-                _dbContext!.Attach(propietario);
+                _dbContext.Attach(propietario);
 
             entryPropietario.Property(nameof(Propietario.Clave)).IsModified = true;
 
-            return (await _dbContext!.SaveChangesAsync()) > 0;
+            return (await _dbContext.SaveChangesAsync()) > 0;
         }
     }
 }
